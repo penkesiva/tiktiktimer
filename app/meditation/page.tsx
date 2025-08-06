@@ -13,7 +13,7 @@ interface MeditationSettings {
   volume: number
 }
 
-const DURATION_OPTIONS = [5, 10, 15, 20, 30]
+const DURATION_OPTIONS = [1, 2, 5, 10, 15, 20, 30]
 
 const GUIDED_PROMPTS = [
   "Take a deep breath in... and out.",
@@ -28,7 +28,7 @@ const GUIDED_PROMPTS = [
 
 export default function MeditationTimerPage() {
   const [settings, setSettings] = useState<MeditationSettings>({
-    duration: 10,
+    duration: 5,
     mode: 'silent',
     volume: 0.7
   })
@@ -190,7 +190,7 @@ export default function MeditationTimerPage() {
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Duration
               </label>
-              <div className="grid grid-cols-5 gap-3">
+              <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
                 {DURATION_OPTIONS.map((duration) => (
                   <button
                     key={duration}
