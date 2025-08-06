@@ -18,6 +18,29 @@ A clean, minimalist SaaS application for workout and meditation timing with cust
 - **Deployment**: Vercel
 - **Icons**: Lucide React
 
+## 🚀 Quick Start Scripts
+
+The project includes two convenient scripts for launching the development server:
+
+### `init.sh` - Full Initialization Script
+- Checks for Node.js and npm installation
+- Installs dependencies if needed
+- Creates `.env.local` from example if missing
+- Kills any existing process on port 3000
+- Starts the development server
+
+```bash
+./init.sh
+```
+
+### `start.sh` - Quick Start Script
+- Kills any existing process on port 3000
+- Starts the development server immediately
+
+```bash
+./start.sh
+```
+
 ## 📦 Installation
 
 1. **Clone the repository**
@@ -43,6 +66,18 @@ A clean, minimalist SaaS application for workout and meditation timing with cust
    ```
 
 4. **Run the development server**
+   
+   **Option 1: Using the init script (recommended for first time)**
+   ```bash
+   ./init.sh
+   ```
+   
+   **Option 2: Using the quick start script**
+   ```bash
+   ./start.sh
+   ```
+   
+   **Option 3: Manual start**
    ```bash
    npm run dev
    ```
