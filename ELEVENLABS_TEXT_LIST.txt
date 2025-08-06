@@ -1,0 +1,36 @@
+WORKOUT TIMER - CORE CUES
+Start
+Rest
+Round 1
+Round 2
+Round 3
+Round 4
+Round 5
+Round 6
+Round 7
+Round 8
+Final Round
+Workout complete
+
+WORKOUT TIMER - MOTIVATIONAL CUES
+You've got this!
+Halfway there!
+Keep going!
+Almost there!
+Great work!
+Stay strong!
+
+MEDITATION TIMER - GUIDED PROMPTS
+Take a deep breath in... and out.
+Return your focus to your breath.
+Relax your jaw and shoulders.
+You're doing well. Stay present.
+Let go of any tension in your body.
+Focus on the rhythm of your breathing.
+Allow thoughts to pass like clouds.
+Feel the peace within you.
+
+MEDITATION TIMER - CUES
+Meditation beginning
+Meditation complete
+Take a moment to return to your surroundings. 
