@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX } from 'lucide-react'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
+import { getAudioManager, playMeditationPrompt } from '@/lib/audio'
 
 interface MeditationSettings {
   duration: number
@@ -40,25 +41,25 @@ export default function MeditationTimerPage() {
   const [isMuted, setIsMuted] = useState(false)
   const [currentPrompt, setCurrentPrompt] = useState<string | null>(null)
 
-  // Audio functions (placeholder - will be implemented with actual audio files)
-  const playStartChime = useCallback(() => {
+  // Audio functions using actual audio files
+  const playStartChime = useCallback(async () => {
     if (!isMuted) {
-      // TODO: Play start chime sound
-      // console.log('Playing start chime')
+      const audioManager = getAudioManager()
+      await audioManager.playChime('start-chime')
     }
   }, [isMuted])
 
-  const playEndChime = useCallback(() => {
+  const playEndChime = useCallback(async () => {
     if (!isMuted) {
-      // TODO: Play end chime sound
-      // console.log('Playing end chime')
+      const audioManager = getAudioManager()
+      await audioManager.playChime('end-chime')
     }
   }, [isMuted])
 
-  const playMidwayChime = useCallback(() => {
+  const playMidwayChime = useCallback(async () => {
     if (!isMuted && settings.mode === 'guided') {
-      // TODO: Play midway chime sound
-      // console.log('Playing midway chime')
+      const audioManager = getAudioManager()
+      await audioManager.playChime('midway-chime')
     }
   }, [isMuted, settings.mode])
 
@@ -103,6 +104,10 @@ export default function MeditationTimerPage() {
         const promptIndex = Math.floor(timeElapsed / promptInterval) - 1
         if (promptIndex >= 0 && promptIndex < GUIDED_PROMPTS.length) {
           setCurrentPrompt(GUIDED_PROMPTS[promptIndex])
+          // Play the actual audio prompt
+          playMeditationPrompt(promptIndex).catch(() => {
+            // Silent error handling for audio playback
+          })
           setTimeout(() => setCurrentPrompt(null), 5000) // Show prompt for 5 seconds
         }
       }
@@ -132,7 +137,14 @@ export default function MeditationTimerPage() {
   }, [settings.duration])
 
   const toggleMute = useCallback(() => {
-    setIsMuted(!isMuted)
+    const audioManager = getAudioManager()
+    if (isMuted) {
+      audioManager.unmute()
+      setIsMuted(false)
+    } else {
+      audioManager.mute()
+      setIsMuted(true)
+    }
   }, [isMuted])
 
   const selectDuration = (duration: number) => {
