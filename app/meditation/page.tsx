@@ -40,6 +40,28 @@ export default function MeditationTimerPage() {
   const [isMuted, setIsMuted] = useState(false)
   const [currentPrompt, setCurrentPrompt] = useState<string | null>(null)
 
+  // Audio functions (placeholder - will be implemented with actual audio files)
+  const playStartChime = useCallback(() => {
+    if (!isMuted) {
+      // TODO: Play start chime sound
+      // console.log('Playing start chime')
+    }
+  }, [isMuted])
+
+  const playEndChime = useCallback(() => {
+    if (!isMuted) {
+      // TODO: Play end chime sound
+      // console.log('Playing end chime')
+    }
+  }, [isMuted])
+
+  const playMidwayChime = useCallback(() => {
+    if (!isMuted && settings.mode === 'guided') {
+      // TODO: Play midway chime sound
+      // console.log('Playing midway chime')
+    }
+  }, [isMuted, settings.mode])
+
   // Timer logic
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
@@ -79,28 +101,6 @@ export default function MeditationTimerPage() {
       }
     }
   }, [isRunning, isPaused, settings.mode, time, settings.duration])
-
-  // Audio functions (placeholder - will be implemented with actual audio files)
-  const playStartChime = useCallback(() => {
-    if (!isMuted) {
-      // TODO: Play start chime sound
-      // console.log('Playing start chime')
-    }
-  }, [isMuted])
-
-  const playEndChime = useCallback(() => {
-    if (!isMuted) {
-      // TODO: Play end chime sound
-      // console.log('Playing end chime')
-    }
-  }, [isMuted])
-
-  const playMidwayChime = useCallback(() => {
-    if (!isMuted && settings.mode === 'guided') {
-      // TODO: Play midway chime sound
-      // console.log('Playing midway chime')
-    }
-  }, [isMuted, settings.mode])
 
   const startTimer = useCallback(() => {
     setIsRunning(true)
