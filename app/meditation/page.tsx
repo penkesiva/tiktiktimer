@@ -85,6 +85,13 @@ export default function MeditationTimerPage() {
     }
   }, [isRunning, isPaused, playEndChime])
 
+  // Update timer when duration changes (only when not running)
+  useEffect(() => {
+    if (!isRunning) {
+      setTime(settings.duration * 60)
+    }
+  }, [settings.duration, isRunning])
+
   // Guided meditation prompts
   useEffect(() => {
     if (isRunning && !isPaused && settings.mode === 'guided' && time > 0) {
@@ -135,6 +142,8 @@ export default function MeditationTimerPage() {
 
   const selectMode = (mode: MeditationSettings['mode']) => {
     setSettings(prev => ({ ...prev, mode }))
+    // Clear any current prompt when mode changes
+    setCurrentPrompt(null)
     resetTimer()
   }
 
