@@ -7,6 +7,8 @@ import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { getAudioManager, playWorkoutCue, playChime, playMotivationalCue } from '@/lib/audio'
+import { WorkoutTopAd, WorkoutBottomAd } from '@/components/ads/GoogleAdsense'
+import { OptimizedImage } from '@/components/ui/Image'
 
 interface WorkoutSettings {
   workDuration: number
@@ -178,7 +180,28 @@ export default function WorkoutTimerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sport-50 via-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-sport-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+      {/* Decorative Background Images */}
+      <div className="absolute top-32 right-8 w-20 h-20 opacity-15">
+        <OptimizedImage
+          src="/images/workout1.jpg"
+          alt="Workout"
+          width={80}
+          height={80}
+          className="rounded-full"
+        />
+      </div>
+      
+      <div className="absolute bottom-32 left-8 w-16 h-16 opacity-10">
+        <OptimizedImage
+          src="/images/workout2.jpg"
+          alt="Workout"
+          width={64}
+          height={64}
+          className="rounded-full"
+        />
+      </div>
+
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -200,8 +223,24 @@ export default function WorkoutTimerPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Top Ad */}
+        <div className="mb-6">
+          <WorkoutTopAd />
+        </div>
+
         {/* Always Visible Workout Presets */}
-        <div className="card-sport mb-8">
+        <div className="card-sport mb-8 relative overflow-hidden">
+          {/* Decorative Image */}
+          <div className="absolute top-4 right-4 w-12 h-12 opacity-15">
+            <OptimizedImage
+              src="/images/workout1.jpg"
+              alt="Workout"
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
+          </div>
+          
           <h3 className="text-2xl font-bold text-sport-800 mb-6">Choose Your Workout</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -210,12 +249,23 @@ export default function WorkoutTimerPage() {
                 key={workout.id}
                 onClick={() => selectWorkoutType(workout)}
                 className={cn(
-                  'p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
+                  'p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden',
                   settings.workoutType === workout.id
                     ? 'border-sport-500 bg-gradient-to-br from-sport-100 to-sport-200 text-sport-800 shadow-lg'
                     : 'border-sport-200 hover:border-sport-300 bg-white/80 backdrop-blur-sm hover:bg-white'
                 )}
               >
+                {/* Small decorative image */}
+                <div className="absolute top-2 right-2 w-8 h-8 opacity-20">
+                  <OptimizedImage
+                    src="/images/workout2.jpg"
+                    alt="Workout"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                </div>
+                
                 <div className="font-bold text-xl mb-2">{workout.name}</div>
                 <div className="text-sm text-gray-600 space-y-1">
                   <div>Work: {workout.work}s</div>
@@ -277,7 +327,18 @@ export default function WorkoutTimerPage() {
         )}
 
         {/* Timer Display */}
-        <div className="card-sport">
+        <div className="card-sport relative overflow-hidden">
+          {/* Decorative Image */}
+          <div className="absolute top-4 right-4 w-12 h-12 opacity-15">
+            <OptimizedImage
+              src="/images/workout1.jpg"
+              alt="Workout"
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
+          </div>
+          
           <TimerDisplay
             time={time}
             isRunning={isRunning}
@@ -320,6 +381,11 @@ export default function WorkoutTimerPage() {
               </>
             )}
           </div>
+        </div>
+
+        {/* Bottom Ad */}
+        <div className="mt-8">
+          <WorkoutBottomAd />
         </div>
       </div>
     </div>

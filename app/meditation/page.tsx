@@ -1,11 +1,13 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
+import { useState, useCallback, useEffect } from 'react'
 import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX } from 'lucide-react'
-import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
-import { getAudioManager, playMeditationPrompt, playMeditationCue } from '@/lib/audio'
+import { TimerDisplay } from '@/components/timer/TimerDisplay'
+import { getAudioManager, playMeditationCue } from '@/lib/audio'
+import { MeditationTopAd, MeditationBottomAd } from '@/components/ads/GoogleAdsense'
+import { OptimizedImage } from '@/components/ui/Image'
 
 interface MeditationSettings {
   duration: number
@@ -116,7 +118,7 @@ export default function MeditationTimerPage() {
         if (promptIndex >= 0 && promptIndex < GUIDED_PROMPTS.length) {
           setCurrentPrompt(GUIDED_PROMPTS[promptIndex])
           // Play the actual audio prompt
-          playMeditationPrompt(promptIndex).catch(() => {
+          playMeditationCue(`prompt-${promptIndex}`).catch(() => {
             // Silent error handling for audio playback
           })
           setTimeout(() => setCurrentPrompt(null), 5000) // Show prompt for 5 seconds
@@ -171,7 +173,28 @@ export default function MeditationTimerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100">
+    <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100 relative overflow-hidden">
+      {/* Decorative Background Images */}
+      <div className="absolute top-32 right-8 w-20 h-20 opacity-15">
+        <OptimizedImage
+          src="/images/yoga.jpg"
+          alt="Yoga"
+          width={80}
+          height={80}
+          className="rounded-full"
+        />
+      </div>
+      
+      <div className="absolute bottom-32 left-8 w-16 h-16 opacity-10">
+        <OptimizedImage
+          src="/images/yoga.jpg"
+          alt="Yoga"
+          width={64}
+          height={64}
+          className="rounded-full"
+        />
+      </div>
+
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -203,9 +226,25 @@ export default function MeditationTimerPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Top Ad */}
+        <div className="mb-6">
+          <MeditationTopAd />
+        </div>
+
         {/* Settings Panel */}
         {showSettings && (
-          <div className="card-calm mb-8">
+          <div className="card-calm mb-8 relative overflow-hidden">
+            {/* Decorative Image */}
+            <div className="absolute top-4 right-4 w-12 h-12 opacity-15">
+              <OptimizedImage
+                src="/images/yoga.jpg"
+                alt="Yoga"
+                width={48}
+                height={48}
+                className="rounded-full"
+              />
+            </div>
+            
             <h3 className="text-2xl font-bold text-calm-800 mb-6">Meditation Settings</h3>
             
             {/* Duration Selection */}
@@ -305,7 +344,18 @@ export default function MeditationTimerPage() {
         )}
 
         {/* Timer Display */}
-        <div className="card-calm">
+        <div className="card-calm relative overflow-hidden">
+          {/* Decorative Image */}
+          <div className="absolute top-4 right-4 w-12 h-12 opacity-15">
+            <OptimizedImage
+              src="/images/yoga.jpg"
+              alt="Yoga"
+              width={48}
+              height={48}
+              className="rounded-full"
+            />
+          </div>
+          
           <TimerDisplay
             time={time}
             isRunning={isRunning}
@@ -355,6 +405,11 @@ export default function MeditationTimerPage() {
               </>
             )}
           </div>
+        </div>
+
+        {/* Bottom Ad */}
+        <div className="mt-8">
+          <MeditationBottomAd />
         </div>
       </div>
     </div>
