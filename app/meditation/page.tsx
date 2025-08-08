@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX } from 'lucide-react'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
-import { getAudioManager, playMeditationPrompt } from '@/lib/audio'
+import { getAudioManager, playMeditationPrompt, playMeditationCue } from '@/lib/audio'
 
 interface MeditationSettings {
   duration: number
@@ -40,19 +40,30 @@ export default function MeditationTimerPage() {
   const [showSettings, setShowSettings] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [currentPrompt, setCurrentPrompt] = useState<string | null>(null)
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
 
   // Audio functions using actual audio files
   const playStartChime = useCallback(async () => {
     if (!isMuted) {
+      setIsAudioPlaying(true)
       const audioManager = getAudioManager()
-      await audioManager.playChime('start-chime')
+      await audioManager.playChimeAndWait('meditation-start-chime')
+      await audioManager.playMeditationCueAndWait('meditation-beginning')
+      setIsAudioPlaying(false)
+    } else {
+      setIsAudioPlaying(false)
     }
   }, [isMuted])
 
   const playEndChime = useCallback(async () => {
     if (!isMuted) {
+      setIsAudioPlaying(true)
       const audioManager = getAudioManager()
-      await audioManager.playChime('end-chime')
+      await audioManager.playChimeAndWait('meditation-end-chime')
+      await audioManager.playMeditationCueAndWait('meditation-complete')
+      setIsAudioPlaying(false)
+    } else {
+      setIsAudioPlaying(false)
     }
   }, [isMuted])
 
@@ -67,7 +78,7 @@ export default function MeditationTimerPage() {
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
 
-    if (isRunning && !isPaused) {
+    if (isRunning && !isPaused && !isAudioPlaying) {
       interval = setInterval(() => {
         setTime((prevTime) => {
           if (prevTime <= 1) {
@@ -84,7 +95,7 @@ export default function MeditationTimerPage() {
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, isPaused, playEndChime])
+  }, [isRunning, isPaused, isAudioPlaying, playEndChime])
 
   // Update timer when duration changes (only when not running)
   useEffect(() => {
@@ -95,7 +106,7 @@ export default function MeditationTimerPage() {
 
   // Guided meditation prompts
   useEffect(() => {
-    if (isRunning && !isPaused && settings.mode === 'guided' && time > 0) {
+    if (isRunning && !isPaused && !isAudioPlaying && settings.mode === 'guided' && time > 0) {
       const totalTime = settings.duration * 60
       const timeElapsed = totalTime - time
       const promptInterval = Math.floor(totalTime / (GUIDED_PROMPTS.length + 1))
@@ -112,13 +123,13 @@ export default function MeditationTimerPage() {
         }
       }
     }
-  }, [isRunning, isPaused, settings.mode, time, settings.duration])
+  }, [isRunning, isPaused, isAudioPlaying, settings.mode, time, settings.duration])
 
-  const startTimer = useCallback(() => {
+  const startTimer = useCallback(async () => {
     setIsRunning(true)
     setIsPaused(false)
     setTime(settings.duration * 60)
-    playStartChime()
+    await playStartChime()
   }, [settings.duration, playStartChime])
 
   const pauseTimer = useCallback(() => {
@@ -299,6 +310,7 @@ export default function MeditationTimerPage() {
             time={time}
             isRunning={isRunning}
             isPaused={isPaused}
+            isAudioPlaying={isAudioPlaying}
             className="mb-8"
           />
 
@@ -314,9 +326,13 @@ export default function MeditationTimerPage() {
           {/* Controls */}
           <div className="flex items-center justify-center space-x-4">
             {!isRunning ? (
-              <Button size="lg" onClick={startTimer}>
+              <Button 
+                size="lg" 
+                onClick={() => startTimer().catch(console.error)}
+                disabled={isAudioPlaying}
+              >
                 <Play className="w-5 h-5 mr-2" />
-                Start Meditation
+                {isAudioPlaying ? 'Starting...' : 'Start Meditation'}
               </Button>
             ) : (
               <>

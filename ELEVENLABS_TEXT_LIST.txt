@@ -1,4 +1,6 @@
-WORKOUT TIMER - CORE CUES
+# ELEVENLABS TEXT LIST - Complete Audio Content
+
+## 🏋️ WORKOUT TIMER - CORE CUES (HIGH PRIORITY)
 Start
 Rest
 Round 1
@@ -12,7 +14,7 @@ Round 8
 Final Round
 Workout complete
 
-WORKOUT TIMER - MOTIVATIONAL CUES
+## 🏋️ WORKOUT TIMER - MOTIVATIONAL CUES (MEDIUM PRIORITY)
 You've got this!
 Halfway there!
 Keep going!
@@ -20,7 +22,7 @@ Almost there!
 Great work!
 Stay strong!
 
-MEDITATION TIMER - GUIDED PROMPTS
+## 🧘‍♀️ MEDITATION TIMER - GUIDED PROMPTS (HIGH PRIORITY)
 Take a deep breath in... and out.
 Return your focus to your breath.
 Relax your jaw and shoulders.
@@ -30,7 +32,13 @@ Focus on the rhythm of your breathing.
 Allow thoughts to pass like clouds.
 Feel the peace within you.
 
-MEDITATION TIMER - CUES
+## 🧘‍♀️ MEDITATION TIMER - CUES (MEDIUM PRIORITY)
 Meditation beginning
 Meditation complete
-Take a moment to return to your surroundings. 
+Take a moment to return to your surroundings.
+
+## 🔊 CHIME SOUNDS (HIGH PRIORITY)
+Note: These are sound effects, not voice. Use ElevenLabs sound generation or download from a sound library.
+
+## 🎵 AMBIENT SOUNDS (LOW PRIORITY)
+Note: These are background sounds, not voice. Use ElevenLabs sound generation or download from a sound library. 

@@ -8,6 +8,7 @@ interface TimerDisplayProps {
   currentRound?: number
   totalRounds?: number
   phase?: 'work' | 'rest' | 'break'
+  isAudioPlaying?: boolean
   className?: string
 }
 
@@ -18,6 +19,7 @@ export function TimerDisplay({
   currentRound,
   totalRounds,
   phase,
+  isAudioPlaying,
   className
 }: TimerDisplayProps) {
   return (
@@ -47,6 +49,15 @@ export function TimerDisplay({
             )} />
           )}
           
+          {isAudioPlaying && (
+            <div className="flex items-center space-x-2">
+              <div className="w-3 h-3 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-sm font-medium text-blue-700">
+                Audio playing...
+              </span>
+            </div>
+          )}
+          
           {phase && (
             <span className={cn(
               'text-sm font-medium px-3 py-1 rounded-full',
@@ -66,12 +77,12 @@ export function TimerDisplay({
       {currentRound && totalRounds && (
         <div className="mb-6">
           <div className="text-lg font-medium text-gray-700">
-            Round {currentRound} of {totalRounds}
+            Round {Math.min(currentRound, totalRounds)} of {totalRounds}
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
             <div 
               className="bg-primary-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentRound / totalRounds) * 100}%` }}
+              style={{ width: `${(Math.min(currentRound, totalRounds) / totalRounds) * 100}%` }}
             />
           </div>
         </div>

@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { ArrowLeft, Play, Pause, RotateCcw, Settings } from 'lucide-react'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
+import { cn } from '@/lib/utils'
+import { getAudioManager, playWorkoutCue, playChime, playMotivationalCue } from '@/lib/audio'
 
 interface WorkoutSettings {
   workDuration: number
@@ -32,33 +34,91 @@ export default function WorkoutTimerPage() {
   const [isPaused, setIsPaused] = useState(false)
   const [currentRound, setCurrentRound] = useState(1)
   const [phase, setPhase] = useState<'work' | 'rest' | 'break'>('work')
-  const [showSettings, setShowSettings] = useState(false)
+  const [showAdvancedSettings, setShowAdvancedSettings] = useState(false)
+  const [isAudioPlaying, setIsAudioPlaying] = useState(false)
+
+  // Audio functions
+  const playStartCue = useCallback(async () => {
+    setIsAudioPlaying(true)
+    const audioManager = getAudioManager()
+    await audioManager.playChimeAndWait('start-chime')
+    await audioManager.playWorkoutCueAndWait('start')
+    setIsAudioPlaying(false)
+  }, [])
+
+  const playRestCue = useCallback(async () => {
+    setIsAudioPlaying(true)
+    const audioManager = getAudioManager()
+    await audioManager.playChimeAndWait('rest-chime')
+    await audioManager.playWorkoutCueAndWait('rest')
+    setIsAudioPlaying(false)
+  }, [])
+
+  const playRoundCue = useCallback(async (round: number) => {
+    setIsAudioPlaying(true)
+    const audioManager = getAudioManager()
+    await audioManager.playChimeAndWait('round-chime')
+    if (round === settings.rounds) {
+      await audioManager.playWorkoutCueAndWait('final-round')
+    } else {
+      await audioManager.playWorkoutCueAndWait(`round-${round}`)
+    }
+    setIsAudioPlaying(false)
+  }, [settings.rounds])
+
+  const playWorkoutCompleteCue = useCallback(async () => {
+    setIsAudioPlaying(true)
+    const audioManager = getAudioManager()
+    await audioManager.playChimeAndWait('completion-chime')
+    await audioManager.playWorkoutCueAndWait('workout-complete')
+    setIsAudioPlaying(false)
+  }, [])
+
+  const playMotivationalCue = useCallback(async () => {
+    const motivationalCues = ['youve-got-this', 'halfway-there', 'keep-going', 'almost-there', 'great-work', 'stay-strong']
+    const randomCue = motivationalCues[Math.floor(Math.random() * motivationalCues.length)]
+    const audioManager = getAudioManager()
+    await audioManager.playMotivationalCue(randomCue)
+  }, [])
 
   // Timer logic
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null
 
-    if (isRunning && !isPaused) {
+    if (isRunning && !isPaused && !isAudioPlaying) {
       interval = setInterval(() => {
         setTime((prevTime) => {
           if (prevTime <= 1) {
             // Timer finished for current phase
             if (phase === 'work') {
+              // Work phase finished
               if (currentRound < settings.rounds) {
-                // Start rest period
+                // More rounds to go - start rest period
                 setPhase('rest')
+                playRestCue()
                 return settings.restDuration
               } else {
-                // Workout complete
+                // All rounds completed - workout complete
+                setIsRunning(false)
+                setPhase('break')
+                playWorkoutCompleteCue()
+                return 0
+              }
+            } else if (phase === 'rest') {
+              // Rest phase finished - start next work period
+              const nextRound = currentRound + 1
+              if (nextRound <= settings.rounds) {
+                // Start next round
+                setCurrentRound(nextRound)
+                setPhase('work')
+                playRoundCue(nextRound)
+                return settings.workDuration
+              } else {
+                // This shouldn't happen, but just in case
                 setIsRunning(false)
                 setPhase('break')
                 return 0
               }
-            } else if (phase === 'rest') {
-              // Start next work period
-              setCurrentRound(prev => prev + 1)
-              setPhase('work')
-              return settings.workDuration
             }
           }
           return prevTime - 1
@@ -69,15 +129,27 @@ export default function WorkoutTimerPage() {
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [isRunning, isPaused, time, phase, currentRound, settings])
+  }, [isRunning, isPaused, isAudioPlaying, time, phase, currentRound, settings, playRestCue, playRoundCue, playWorkoutCompleteCue])
 
-  const startTimer = useCallback(() => {
+  // Play motivational cues at random intervals
+  useEffect(() => {
+    if (isRunning && !isPaused && !isAudioPlaying && phase === 'work' && time > 0) {
+      // Play motivational cue every 30-60 seconds randomly
+      const shouldPlayMotivational = Math.random() < 0.02 // 2% chance per second
+      if (shouldPlayMotivational) {
+        playMotivationalCue()
+      }
+    }
+  }, [isRunning, isPaused, isAudioPlaying, phase, time, playMotivationalCue])
+
+  const startTimer = useCallback(async () => {
     setIsRunning(true)
     setIsPaused(false)
     setTime(settings.workDuration)
     setCurrentRound(1)
     setPhase('work')
-  }, [settings.workDuration])
+    await playStartCue()
+  }, [settings.workDuration, playStartCue])
 
   const pauseTimer = useCallback(() => {
     setIsPaused(true)
@@ -119,7 +191,7 @@ export default function WorkoutTimerPage() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowSettings(!showSettings)}
+              onClick={() => setShowAdvancedSettings(!showAdvancedSettings)}
             >
               <Settings className="w-5 h-5" />
             </Button>
@@ -128,38 +200,38 @@ export default function WorkoutTimerPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Settings Panel */}
-        {showSettings && (
-          <div className="card mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Workout Settings</h3>
-            
-            {/* Quick Presets */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
-                Quick Presets
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                {WORKOUT_TYPES.map((workout) => (
-                  <button
-                    key={workout.id}
-                    onClick={() => selectWorkoutType(workout)}
-                    className={cn(
-                      'p-3 rounded-lg border text-left transition-colors',
-                      settings.workoutType === workout.id
-                        ? 'border-primary-500 bg-primary-50 text-primary-700'
-                        : 'border-gray-200 hover:border-gray-300'
-                    )}
-                  >
-                    <div className="font-medium">{workout.name}</div>
-                    <div className="text-sm text-gray-600">
-                      {workout.work}s work, {workout.rest}s rest, {workout.rounds} rounds
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
+        {/* Always Visible Workout Presets */}
+        <div className="card mb-8">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Workout</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {WORKOUT_TYPES.map((workout) => (
+              <button
+                key={workout.id}
+                onClick={() => selectWorkoutType(workout)}
+                className={cn(
+                  'p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md',
+                  settings.workoutType === workout.id
+                    ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                )}
+              >
+                <div className="font-bold text-lg mb-2">{workout.name}</div>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <div>Work: {workout.work}s</div>
+                  <div>Rest: {workout.rest}s</div>
+                  <div>Rounds: {workout.rounds}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
 
-            {/* Custom Settings */}
+        {/* Advanced Settings Panel */}
+        {showAdvancedSettings && (
+          <div className="card mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Settings</h3>
+            
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -213,14 +285,19 @@ export default function WorkoutTimerPage() {
             currentRound={currentRound}
             totalRounds={settings.rounds}
             phase={phase}
+            isAudioPlaying={isAudioPlaying}
           />
 
           {/* Controls */}
           <div className="flex items-center justify-center space-x-4">
             {!isRunning ? (
-              <Button size="lg" onClick={startTimer}>
+              <Button 
+                size="lg" 
+                onClick={() => startTimer().catch(console.error)}
+                disabled={isAudioPlaying}
+              >
                 <Play className="w-5 h-5 mr-2" />
-                Start Workout
+                {isAudioPlaying ? 'Starting...' : 'Start Workout'}
               </Button>
             ) : (
               <>
@@ -246,8 +323,4 @@ export default function WorkoutTimerPage() {
       </div>
     </div>
   )
-}
-
-function cn(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
 } 
