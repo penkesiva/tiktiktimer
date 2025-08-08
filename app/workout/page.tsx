@@ -178,16 +178,16 @@ export default function WorkoutTimerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-sport-50 via-blue-50 to-indigo-100">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
-            <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+            <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-sport-600 transition-colors">
               <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
+              <span className="font-medium">Back</span>
             </Link>
-            <h1 className="text-xl font-semibold text-gray-900">Workout Timer</h1>
+            <h1 className="text-2xl font-bold gradient-text">Workout Timer</h1>
             <Button
               variant="ghost"
               size="sm"
@@ -201,8 +201,8 @@ export default function WorkoutTimerPage() {
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Always Visible Workout Presets */}
-        <div className="card mb-8">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Choose Your Workout</h3>
+        <div className="card-sport mb-8">
+          <h3 className="text-2xl font-bold text-sport-800 mb-6">Choose Your Workout</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {WORKOUT_TYPES.map((workout) => (
@@ -210,13 +210,13 @@ export default function WorkoutTimerPage() {
                 key={workout.id}
                 onClick={() => selectWorkoutType(workout)}
                 className={cn(
-                  'p-6 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md',
+                  'p-6 rounded-2xl border-2 text-left transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
                   settings.workoutType === workout.id
-                    ? 'border-primary-500 bg-primary-50 text-primary-700 shadow-md'
-                    : 'border-gray-200 hover:border-gray-300 bg-white'
+                    ? 'border-sport-500 bg-gradient-to-br from-sport-100 to-sport-200 text-sport-800 shadow-lg'
+                    : 'border-sport-200 hover:border-sport-300 bg-white/80 backdrop-blur-sm hover:bg-white'
                 )}
               >
-                <div className="font-bold text-lg mb-2">{workout.name}</div>
+                <div className="font-bold text-xl mb-2">{workout.name}</div>
                 <div className="text-sm text-gray-600 space-y-1">
                   <div>Work: {workout.work}s</div>
                   <div>Rest: {workout.rest}s</div>
@@ -229,12 +229,12 @@ export default function WorkoutTimerPage() {
 
         {/* Advanced Settings Panel */}
         {showAdvancedSettings && (
-          <div className="card mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Custom Settings</h3>
+          <div className="card-sport mb-8">
+            <h3 className="text-2xl font-bold text-sport-800 mb-6">Custom Settings</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-sport-700 mb-2">
                   Work Duration (seconds)
                 </label>
                 <input
@@ -243,11 +243,11 @@ export default function WorkoutTimerPage() {
                   max="300"
                   value={settings.workDuration}
                   onChange={(e) => setSettings(prev => ({ ...prev, workDuration: parseInt(e.target.value) || 30 }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-sport-200 rounded-xl focus:ring-2 focus:ring-sport-500 focus:border-sport-500 bg-white/80 backdrop-blur-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-sport-700 mb-2">
                   Rest Duration (seconds)
                 </label>
                 <input
@@ -256,11 +256,11 @@ export default function WorkoutTimerPage() {
                   max="120"
                   value={settings.restDuration}
                   onChange={(e) => setSettings(prev => ({ ...prev, restDuration: parseInt(e.target.value) || 10 }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-sport-200 rounded-xl focus:ring-2 focus:ring-sport-500 focus:border-sport-500 bg-white/80 backdrop-blur-sm"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-sport-700 mb-2">
                   Rounds
                 </label>
                 <input
@@ -269,7 +269,7 @@ export default function WorkoutTimerPage() {
                   max="20"
                   value={settings.rounds}
                   onChange={(e) => setSettings(prev => ({ ...prev, rounds: parseInt(e.target.value) || 5 }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  className="w-full px-3 py-2 border border-sport-200 rounded-xl focus:ring-2 focus:ring-sport-500 focus:border-sport-500 bg-white/80 backdrop-blur-sm"
                 />
               </div>
             </div>
@@ -277,7 +277,7 @@ export default function WorkoutTimerPage() {
         )}
 
         {/* Timer Display */}
-        <div className="card">
+        <div className="card-sport">
           <TimerDisplay
             time={time}
             isRunning={isRunning}
@@ -293,6 +293,7 @@ export default function WorkoutTimerPage() {
             {!isRunning ? (
               <Button 
                 size="lg" 
+                variant="sport"
                 onClick={() => startTimer().catch(console.error)}
                 disabled={isAudioPlaying}
               >
@@ -302,7 +303,7 @@ export default function WorkoutTimerPage() {
             ) : (
               <>
                 {isPaused ? (
-                  <Button size="lg" onClick={resumeTimer}>
+                  <Button size="lg" variant="sport" onClick={resumeTimer}>
                     <Play className="w-5 h-5 mr-2" />
                     Resume
                   </Button>

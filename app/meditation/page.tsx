@@ -171,16 +171,16 @@ export default function MeditationTimerPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
-            <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-gray-900">
+            <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-calm-600 transition-colors">
               <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
+              <span className="font-medium">Back</span>
             </Link>
-            <h1 className="text-xl font-semibold text-gray-900">Meditation Timer</h1>
+            <h1 className="text-2xl font-bold gradient-text-calm">Meditation Timer</h1>
             <div className="flex items-center space-x-2">
               <Button
                 variant="ghost"
@@ -205,12 +205,12 @@ export default function MeditationTimerPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Settings Panel */}
         {showSettings && (
-          <div className="card mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Meditation Settings</h3>
+          <div className="card-calm mb-8">
+            <h3 className="text-2xl font-bold text-calm-800 mb-6">Meditation Settings</h3>
             
             {/* Duration Selection */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-calm-700 mb-3">
                 Duration
               </label>
               <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
@@ -219,13 +219,13 @@ export default function MeditationTimerPage() {
                     key={duration}
                     onClick={() => selectDuration(duration)}
                     className={cn(
-                      'p-3 rounded-lg border text-center transition-colors',
+                      'p-3 rounded-xl border-2 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
                       settings.duration === duration
-                        ? 'border-green-500 bg-green-50 text-green-700'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
+                        : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
                     )}
                   >
-                    <div className="font-medium">{duration}</div>
+                    <div className="font-bold text-lg">{duration}</div>
                     <div className="text-sm text-gray-600">min</div>
                   </button>
                 ))}
@@ -234,44 +234,44 @@ export default function MeditationTimerPage() {
 
             {/* Mode Selection */}
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-3">
+              <label className="block text-sm font-medium text-calm-700 mb-3">
                 Mode
               </label>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <button
                   onClick={() => selectMode('silent')}
                   className={cn(
-                    'p-4 rounded-lg border text-left transition-colors',
+                    'p-4 rounded-xl border-2 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
                     settings.mode === 'silent'
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
+                      : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
                   )}
                 >
-                  <div className="font-medium">Silent</div>
+                  <div className="font-bold text-lg">Silent</div>
                   <div className="text-sm text-gray-600">Chime at start and end only</div>
                 </button>
                 <button
                   onClick={() => selectMode('guided')}
                   className={cn(
-                    'p-4 rounded-lg border text-left transition-colors',
+                    'p-4 rounded-xl border-2 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
                     settings.mode === 'guided'
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
+                      : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
                   )}
                 >
-                  <div className="font-medium">Guided</div>
+                  <div className="font-bold text-lg">Guided</div>
                   <div className="text-sm text-gray-600">Voice prompts every few minutes</div>
                 </button>
                 <button
                   onClick={() => selectMode('ambient')}
                   className={cn(
-                    'p-4 rounded-lg border text-left transition-colors',
+                    'p-4 rounded-xl border-2 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
                     settings.mode === 'ambient'
-                      ? 'border-green-500 bg-green-50 text-green-700'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
+                      : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
                   )}
                 >
-                  <div className="font-medium">Ambient</div>
+                  <div className="font-bold text-lg">Ambient</div>
                   <div className="text-sm text-gray-600">Background sounds (rain, ocean, bells)</div>
                 </button>
               </div>
@@ -280,7 +280,7 @@ export default function MeditationTimerPage() {
             {/* Ambient Sound Selection */}
             {settings.mode === 'ambient' && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">
+                <label className="block text-sm font-medium text-calm-700 mb-3">
                   Ambient Sound
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -289,10 +289,10 @@ export default function MeditationTimerPage() {
                       key={sound}
                       onClick={() => setSettings(prev => ({ ...prev, soundType: sound as any }))}
                       className={cn(
-                        'p-3 rounded-lg border text-center transition-colors capitalize',
+                        'p-3 rounded-xl border-2 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1 capitalize',
                         settings.soundType === sound
-                          ? 'border-green-500 bg-green-50 text-green-700'
-                          : 'border-gray-200 hover:border-gray-300'
+                          ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
+                          : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
                       )}
                     >
                       {sound}
@@ -305,7 +305,7 @@ export default function MeditationTimerPage() {
         )}
 
         {/* Timer Display */}
-        <div className="card">
+        <div className="card-calm">
           <TimerDisplay
             time={time}
             isRunning={isRunning}
@@ -316,8 +316,8 @@ export default function MeditationTimerPage() {
 
           {/* Guided Prompt Display */}
           {currentPrompt && (
-            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <p className="text-green-800 text-center text-lg italic">
+            <div className="mb-6 p-6 bg-gradient-to-br from-calm-100 to-calm-200 border border-calm-200 rounded-2xl shadow-lg">
+              <p className="text-calm-800 text-center text-xl italic font-medium">
                 "{currentPrompt}"
               </p>
             </div>
@@ -328,6 +328,7 @@ export default function MeditationTimerPage() {
             {!isRunning ? (
               <Button 
                 size="lg" 
+                variant="calm"
                 onClick={() => startTimer().catch(console.error)}
                 disabled={isAudioPlaying}
               >
@@ -337,7 +338,7 @@ export default function MeditationTimerPage() {
             ) : (
               <>
                 {isPaused ? (
-                  <Button size="lg" onClick={resumeTimer}>
+                  <Button size="lg" variant="calm" onClick={resumeTimer}>
                     <Play className="w-5 h-5 mr-2" />
                     Resume
                   </Button>
