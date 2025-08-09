@@ -24,21 +24,7 @@ export function TimerDisplay({
 }: TimerDisplayProps) {
   return (
     <div className={cn('text-center relative', className)}>
-      {/* Phase Label - Top Right */}
-      {phase && isRunning && (
-        <div className="absolute top-4 right-4">
-          <span className={cn(
-            'text-base font-semibold px-5 py-3 rounded-lg shadow-lg',
-            {
-              'bg-gradient-to-r from-sport-100 to-sport-200 text-sport-700 border border-sport-300': phase === 'work',
-              'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 border border-orange-300': phase === 'rest',
-              'bg-gradient-to-r from-energy-100 to-energy-200 text-energy-700 border border-energy-300': phase === 'break'
-            }
-          )}>
-            {phase === 'work' ? 'GO!' : phase.charAt(0).toUpperCase() + phase.slice(1)}
-          </span>
-        </div>
-      )}
+
 
       {/* Timer Display */}
       <div className="mb-8">
@@ -55,20 +41,38 @@ export function TimerDisplay({
         </div>
         
         {/* Status Indicators */}
-        <div className="flex items-center justify-center space-x-4 mt-4">
-          {isRunning && (
-            <div className={cn(
-              'w-3 h-3 rounded-full animate-pulse',
-              {
-                'bg-sport-500': !isPaused,
-                'bg-yellow-500': isPaused
-              }
-            )} />
-          )}
+        <div className="flex items-center justify-center mt-4 relative">
+          {/* Timer Status Dots - Always in center */}
+          <div className="flex items-center space-x-1">
+            {isRunning ? (
+              <>
+                <div className={cn(
+                  'w-2 h-2 rounded-full animate-pulse',
+                  {
+                    'bg-sport-500': !isPaused,
+                    'bg-yellow-500': isPaused
+                  }
+                )} />
+                <div className={cn(
+                  'w-2 h-2 rounded-full animate-pulse',
+                  {
+                    'bg-sport-500': !isPaused,
+                    'bg-yellow-500': isPaused
+                  }
+                )} />
+              </>
+            ) : (
+              <>
+                <div className="w-2 h-2 rounded-full bg-gray-300" />
+                <div className="w-2 h-2 rounded-full bg-gray-300" />
+              </>
+            )}
+          </div>
           
+          {/* Audio Playing Indicator - Positioned to the right */}
           {isAudioPlaying && (
-            <div className="flex items-center space-x-2">
-              <div className="w-3 h-3 rounded-full bg-sport-500 animate-pulse" />
+            <div className="absolute right-0 flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-sport-500 animate-pulse" />
               <span className="text-sm font-medium text-sport-700">
                 Audio playing...
               </span>

@@ -372,6 +372,15 @@ export default function WorkoutTimerPage() {
 
         {/* Timer Display */}
         <div className="card-sport relative overflow-hidden">
+          {/* Filling Animation Background */}
+          {isRunning && (
+            <div 
+              className="absolute inset-0 bg-gradient-to-r from-sport-200/30 to-sport-300/30 transition-all duration-1000 ease-out"
+              style={{
+                width: `${Math.min(100, ((currentRound - 1) / settings.rounds) * 100 + (phase === 'work' ? ((settings.workDuration - time) / settings.workDuration) * (1 / settings.rounds) * 100 : (phase === 'rest' ? ((currentRound - 1) / settings.rounds) * 100 : 0)))}%`
+              }}
+            />
+          )}
           {/* Current Timer Info */}
           <div className="text-center mb-4">
             <div className="text-xs md:text-sm font-medium text-sport-600 bg-sport-100 px-3 md:px-4 py-2 rounded-lg inline-block max-w-full">
