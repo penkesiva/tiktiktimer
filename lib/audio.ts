@@ -13,6 +13,7 @@ interface AudioManager {
   mute: () => void
   unmute: () => void
   isMuted: () => boolean
+  stopAll: () => void
 }
 
 class AudioManagerImpl implements AudioManager {
@@ -251,6 +252,13 @@ class AudioManagerImpl implements AudioManager {
 
   isMuted(): boolean {
     return this.muted
+  }
+
+  stopAll(): void {
+    this.audioElements.forEach(audio => {
+      audio.pause()
+      audio.currentTime = 0
+    })
   }
 }
 

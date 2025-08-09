@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Play, Pause, RotateCcw, Settings } from 'lucide-react'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
@@ -26,9 +26,9 @@ const PRESET_WORKOUTS = [
 
 export default function WorkoutTimerPage() {
   const [settings, setSettings] = useState<WorkoutSettings>({
-    workDuration: 30,
-    restDuration: 10,
-    rounds: 5,
+    workDuration: 60,
+    restDuration: 20,
+    rounds: 4,
     workoutType: 'custom',
     currentPreset: 'Custom'
   })
@@ -41,6 +41,8 @@ export default function WorkoutTimerPage() {
 
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
   const [showCustomTimer, setShowCustomTimer] = useState(false)
+  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Audio functions
   const playStartCue = useCallback(async () => {
@@ -88,10 +90,8 @@ export default function WorkoutTimerPage() {
 
   // Timer logic
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null
-
     if (isRunning && !isPaused && !isAudioPlaying) {
-      interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         setTime((prevTime) => {
           if (prevTime <= 1) {
             // Timer finished for current phase
@@ -127,7 +127,7 @@ export default function WorkoutTimerPage() {
     }
 
     return () => {
-      if (interval) clearInterval(interval)
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [isRunning, isPaused, phase, currentRound, settings, isAudioPlaying, playRestCue, playRoundCue, playWorkoutCompleteCue])
 
@@ -143,6 +143,18 @@ export default function WorkoutTimerPage() {
       return () => clearInterval(interval)
     }
   }, [isRunning, phase, isAudioPlaying, playMotivationalCue])
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+      }
+      // Stop any playing audio
+      const audioManager = getAudioManager()
+      audioManager.stopAll()
+    }
+  }, [])
 
   const startTimer = useCallback(async () => {
     if (!isRunning) {
@@ -169,6 +181,11 @@ export default function WorkoutTimerPage() {
     setCurrentRound(1)
     setPhase('work')
     setTime(settings.workDuration)
+    setShowResetConfirm(false)
+  }
+
+  const confirmReset = () => {
+    setShowResetConfirm(true)
   }
 
   const applyPreset = useCallback((preset: typeof PRESET_WORKOUTS[0]) => {
@@ -240,19 +257,29 @@ export default function WorkoutTimerPage() {
 
         {/* Always Visible Workout Presets */}
         <div className="card-sport mb-8 relative overflow-hidden">
-          <h3 className="text-2xl font-bold text-sport-800 mb-6">Quick Presets</h3>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <h3 className="text-lg md:text-xl font-bold text-sport-800 mb-4 md:mb-6">Quick Presets</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
             {PRESET_WORKOUTS.map((preset) => (
               <button
                 key={preset.name}
                 onClick={() => applyPreset(preset)}
-                className="p-4 bg-gradient-to-br from-sport-100 to-sport-200 border border-sport-200 rounded-2xl hover:shadow-lg hover:-translate-y-1 transition-all duration-300 text-left relative"
+                className={cn(
+                  "p-3 md:p-4 border rounded-2xl hover:shadow-lg hover:-translate-y-1 active:scale-95 transition-all duration-300 text-left relative min-h-[80px] md:min-h-[100px]",
+                  settings.currentPreset === preset.name
+                    ? "bg-gradient-to-br from-sport-300 to-sport-400 border-sport-400 shadow-lg"
+                    : "bg-gradient-to-br from-sport-100 to-sport-200 border-sport-200"
+                )}
               >
-                <div className="absolute top-3 right-3 text-xs font-medium text-sport-600 bg-white/80 px-2 py-1 rounded-lg">
+                <div className="absolute top-2 right-2 md:top-3 md:right-3 text-sm md:text-base font-semibold text-sport-600 bg-white/90 px-3 py-2 rounded-lg shadow-sm">
                   {preset.work}s / {preset.rest}s
                 </div>
-                <div className="font-bold text-sport-800">{preset.name}</div>
-                <div className="text-xs text-sport-500 mt-1">{preset.rounds} rounds</div>
+                <div className="font-bold text-sport-800 text-sm md:text-base">{preset.name}</div>
+                <div className={cn(
+                  "text-sm md:text-base mt-1 font-medium",
+                  settings.currentPreset === preset.name ? "text-sport-100" : "text-sport-500"
+                )}>
+                  {preset.rounds} rounds
+                </div>
               </button>
             ))}
           </div>
@@ -269,7 +296,7 @@ export default function WorkoutTimerPage() {
           onClick={() => !showCustomTimer && setShowCustomTimer(true)}
         >
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-xl font-bold text-sport-800">Custom Timer</h3>
+            <h3 className="text-lg md:text-xl font-bold text-sport-800">Custom Timer</h3>
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -283,7 +310,7 @@ export default function WorkoutTimerPage() {
           
                     {showCustomTimer && (
             <div>
-              <div className="flex flex-wrap gap-6 justify-center">
+              <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6 justify-center">
                 <div className="flex flex-col items-center">
                                   <label className="block text-sm font-medium text-sport-700 mb-2">
                   Work (secs)
@@ -294,7 +321,7 @@ export default function WorkoutTimerPage() {
                     max="3600"
                     value={settings.workDuration}
                     onChange={(e) => setSettings(prev => ({ ...prev, workDuration: parseInt(e.target.value) || 1 }))}
-                    className="w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-lg font-medium text-center"
+                    className="w-20 md:w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base md:text-lg font-medium text-center"
                   />
                 </div>
                 
@@ -308,7 +335,7 @@ export default function WorkoutTimerPage() {
                     max="3600"
                     value={settings.restDuration}
                     onChange={(e) => setSettings(prev => ({ ...prev, restDuration: parseInt(e.target.value) || 1 }))}
-                    className="w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-lg font-medium text-center"
+                    className="w-20 md:w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base md:text-lg font-medium text-center"
                   />
                 </div>
                 
@@ -322,21 +349,21 @@ export default function WorkoutTimerPage() {
                     max="100"
                     value={settings.rounds}
                     onChange={(e) => setSettings(prev => ({ ...prev, rounds: parseInt(e.target.value) || 1 }))}
-                    className="w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-lg font-medium text-center"
+                    className="w-20 md:w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base md:text-lg font-medium text-center"
                   />
                 </div>
               </div>
               
-              <div className="w-full flex justify-center mt-6">
+              <div className="w-full flex justify-center mt-4 md:mt-6">
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     applyCustomTimer()
                   }}
-                  className="bg-gradient-to-r from-sport-500 to-sport-600 hover:from-sport-600 hover:to-sport-700 text-white p-3 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sport-500 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="bg-gradient-to-r from-sport-500 to-sport-600 hover:from-sport-600 hover:to-sport-700 text-white p-3 md:p-4 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sport-500 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
                   title="Apply Custom Timer"
                 >
-                  <Play className="w-5 h-5" />
+                  <Play className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
               </div>
             </div>
@@ -347,8 +374,13 @@ export default function WorkoutTimerPage() {
         <div className="card-sport relative overflow-hidden">
           {/* Current Timer Info */}
           <div className="text-center mb-4">
-            <div className="text-sm font-medium text-sport-600 bg-sport-100 px-4 py-2 rounded-lg inline-block">
-              {settings.currentPreset} • {settings.workDuration}s work / {settings.restDuration}s rest • {settings.rounds} rounds
+            <div className="text-xs md:text-sm font-medium text-sport-600 bg-sport-100 px-3 md:px-4 py-2 rounded-lg inline-block max-w-full">
+              <div className="hidden sm:block">
+                <span className="font-bold">{settings.currentPreset}</span> • {settings.workDuration}s work / {settings.restDuration}s rest • {settings.rounds} rounds
+              </div>
+              <div className="block sm:hidden">
+                <span className="font-bold">{settings.currentPreset}</span> • {settings.workDuration}s/{settings.restDuration}s • {settings.rounds}r
+              </div>
             </div>
           </div>
           
@@ -364,35 +396,49 @@ export default function WorkoutTimerPage() {
           />
 
           {/* Controls */}
-          <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center justify-center space-x-3 md:space-x-4">
             {!isRunning ? (
               <Button 
                 size="lg" 
                 variant="sport"
                 onClick={() => startTimer().catch(console.error)}
                 disabled={isAudioPlaying}
+                className="min-w-[140px] md:min-w-[160px]"
               >
                 <Play className="w-5 h-5 mr-2" />
                 {isAudioPlaying ? 'Starting...' : 'Start Workout'}
               </Button>
             ) : (
-              <>
+              <div className="flex items-center space-x-3 md:space-x-4">
                 {isPaused ? (
-                  <Button size="lg" variant="sport" onClick={resumeTimer}>
+                  <Button 
+                    size="lg" 
+                    variant="sport" 
+                    onClick={resumeTimer}
+                    className="min-w-[120px] md:min-w-[140px]"
+                  >
                     <Play className="w-5 h-5 mr-2" />
                     Resume
                   </Button>
                 ) : (
-                  <Button size="lg" variant="secondary" onClick={pauseTimer}>
+                  <Button 
+                    size="lg" 
+                    variant="secondary" 
+                    onClick={pauseTimer}
+                    className="min-w-[120px] md:min-w-[140px]"
+                  >
                     <Pause className="w-5 h-5 mr-2" />
                     Pause
                   </Button>
                 )}
-                <Button size="lg" variant="outline" onClick={resetTimer}>
-                  <RotateCcw className="w-5 h-5 mr-2" />
-                  Reset
-                </Button>
-              </>
+                <button
+                  onClick={confirmReset}
+                  className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-white border-2 border-gray-300 hover:border-red-400 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
+                  title="Reset Timer"
+                >
+                  <RotateCcw className="w-5 h-5 md:w-6 md:h-6" />
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -402,6 +448,37 @@ export default function WorkoutTimerPage() {
           <WorkoutBottomAd />
         </div>
       </div>
+
+      {/* Reset Confirmation Modal */}
+      {showResetConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <RotateCcw className="w-8 h-8 text-red-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Reset Timer?</h3>
+              <p className="text-gray-600 mb-6">
+                This will reset your current workout progress. Are you sure you want to continue?
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={resetTimer}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

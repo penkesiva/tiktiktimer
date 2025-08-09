@@ -25,7 +25,7 @@ export function TimerDisplay({
   return (
     <div className={cn('text-center relative', className)}>
       {/* Phase Label - Top Right */}
-      {phase && (
+      {phase && isRunning && (
         <div className="absolute top-4 right-4">
           <span className={cn(
             'text-base font-semibold px-5 py-3 rounded-lg shadow-lg',
@@ -34,9 +34,9 @@ export function TimerDisplay({
               'bg-gradient-to-r from-orange-100 to-orange-200 text-orange-700 border border-orange-300': phase === 'rest',
               'bg-gradient-to-r from-energy-100 to-energy-200 text-energy-700 border border-energy-300': phase === 'break'
             }
-          )            }>
-              {phase === 'work' ? 'GO!' : phase.charAt(0).toUpperCase() + phase.slice(1)}
-            </span>
+          )}>
+            {phase === 'work' ? 'GO!' : phase.charAt(0).toUpperCase() + phase.slice(1)}
+          </span>
         </div>
       )}
 
