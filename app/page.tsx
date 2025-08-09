@@ -1,39 +1,51 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Play } from 'lucide-react'
 import { BannerAd } from '@/components/ads/GoogleAdsense'
 import { OptimizedImage } from '@/components/ui/Image'
 
 export default function HomePage() {
+  const [isClient, setIsClient] = useState(false)
+
+  // Set client flag to prevent hydration mismatch
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       {/* Falling Animation Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Falling particles */}
-        {Array.from({ length: 20 }).map((_, i) => (
-          <div
-            key={`particle-${i}`}
-            className="falling-particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 8}s`,
-            }}
-          />
-        ))}
-        
-        {/* Falling snowflakes */}
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div
-            key={`snowflake-${i}`}
-            className="falling-snowflake"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 6}s`,
-            }}
-          >
-            ❄
-          </div>
-        ))}
-      </div>
+      {isClient && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Falling particles */}
+          {Array.from({ length: 20 }).map((_, i) => (
+            <div
+              key={`particle-${i}`}
+              className="falling-particle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 8}s`,
+              }}
+            />
+          ))}
+          
+          {/* Falling snowflakes */}
+          {Array.from({ length: 15 }).map((_, i) => (
+            <div
+              key={`snowflake-${i}`}
+              className="falling-snowflake"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 6}s`,
+              }}
+            >
+              ❄
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Strategic Background Images - Fewer, Bigger, Better Positioned */}
       <div className="absolute top-20 right-4 w-64 h-64">

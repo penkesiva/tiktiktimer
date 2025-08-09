@@ -10,6 +10,8 @@ interface TimerDisplayProps {
   phase?: 'work' | 'rest' | 'break'
   isAudioPlaying?: boolean
   className?: string
+  showStatusDots?: boolean
+  showAudioIndicator?: boolean
 }
 
 export function TimerDisplay({
@@ -20,7 +22,9 @@ export function TimerDisplay({
   totalRounds,
   phase,
   isAudioPlaying,
-  className
+  className,
+  showStatusDots = true,
+  showAudioIndicator = true
 }: TimerDisplayProps) {
   return (
     <div className={cn('text-center relative', className)}>
@@ -42,40 +46,39 @@ export function TimerDisplay({
         
         {/* Status Indicators */}
         <div className="flex items-center justify-center mt-4 relative">
-          {/* Timer Status Dots - Always in center */}
-          <div className="flex items-center space-x-1">
-            {isRunning ? (
-              <>
-                <div className={cn(
-                  'w-2 h-2 rounded-full animate-pulse',
-                  {
-                    'bg-sport-500': !isPaused,
-                    'bg-yellow-500': isPaused
-                  }
-                )} />
-                <div className={cn(
-                  'w-2 h-2 rounded-full animate-pulse',
-                  {
-                    'bg-sport-500': !isPaused,
-                    'bg-yellow-500': isPaused
-                  }
-                )} />
-              </>
-            ) : (
-              <>
-                <div className="w-2 h-2 rounded-full bg-gray-300" />
-                <div className="w-2 h-2 rounded-full bg-gray-300" />
-              </>
-            )}
-          </div>
+          {/* Timer Status Dots - Only show if showStatusDots is true */}
+          {showStatusDots && (
+            <div className="flex items-center space-x-1">
+              {isRunning ? (
+                <>
+                  <div className={cn(
+                    'w-2 h-2 rounded-full animate-pulse',
+                    {
+                      'bg-sport-500': !isPaused,
+                      'bg-yellow-500': isPaused
+                    }
+                  )} />
+                  <div className={cn(
+                    'w-2 h-2 rounded-full animate-pulse',
+                    {
+                      'bg-sport-500': !isPaused,
+                      'bg-yellow-500': isPaused
+                    }
+                  )} />
+                </>
+              ) : (
+                <>
+                  <div className="w-2 h-2 rounded-full bg-gray-300" />
+                  <div className="w-2 h-2 rounded-full bg-gray-300" />
+                </>
+              )}
+            </div>
+          )}
           
           {/* Audio Playing Indicator - Positioned to the right */}
-          {isAudioPlaying && (
-            <div className="absolute right-0 flex items-center space-x-2">
+          {isAudioPlaying && showAudioIndicator && (
+            <div className="absolute right-0">
               <div className="w-2 h-2 rounded-full bg-sport-500 animate-pulse" />
-              <span className="text-sm font-medium text-sport-700">
-                Audio playing...
-              </span>
             </div>
           )}
         </div>
@@ -87,9 +90,9 @@ export function TimerDisplay({
           <div className="text-lg font-medium text-gray-700">
             Round {currentRound}/{totalRounds}
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-3 mt-2 shadow-inner">
+          <div className="w-full bg-gray-200 rounded-full h-2 mt-2 shadow-inner">
             <div 
-              className="bg-gradient-to-r from-sport-500 to-sport-600 h-3 rounded-full transition-all duration-300 shadow-lg"
+              className="bg-gradient-to-r from-sport-500 to-sport-600 h-2 rounded-full transition-all duration-300 shadow-lg"
               style={{ width: `${Math.min(100, (currentRound / totalRounds) * 100)}%` }}
             />
           </div>

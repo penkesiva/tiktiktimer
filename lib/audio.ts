@@ -10,6 +10,8 @@ interface AudioManager {
   playWorkoutCueAndWait: (cueName: string) => Promise<void>
   playMeditationCueAndWait: (cueName: string) => Promise<void>
   playAmbientSound: (soundType: string) => Promise<void>
+  pauseAmbientSound: () => void
+  resumeAmbientSound: () => void
   stopAmbientSound: () => void
   setVolume: (volume: number) => void
   mute: () => void
@@ -94,7 +96,7 @@ class AudioManagerImpl implements AudioManager {
     })
 
     // Preload ambient sounds
-    const ambientSounds = ['rain', 'ocean', 'bells', 'spa']
+    const ambientSounds = ['rain', 'ocean', 'spa', 'nature', 'zen', 'calm']
     
     ambientSounds.forEach(sound => {
       const audio = new Audio(`/audio/meditation/ambient/${sound}.mp3`)
@@ -293,8 +295,30 @@ class AudioManagerImpl implements AudioManager {
     }
   }
 
+  pauseAmbientSound(): void {
+    const ambientSounds = ['rain', 'ocean', 'spa', 'nature', 'zen', 'calm']
+    ambientSounds.forEach(sound => {
+      const audio = this.audioElements.get(`ambient-${sound}`)
+      if (audio && !audio.paused) {
+        audio.pause()
+      }
+    })
+  }
+
+  resumeAmbientSound(): void {
+    const ambientSounds = ['rain', 'ocean', 'spa', 'nature', 'zen', 'calm']
+    ambientSounds.forEach(sound => {
+      const audio = this.audioElements.get(`ambient-${sound}`)
+      if (audio && audio.paused) {
+        audio.play().catch(error => {
+          console.error(`Error resuming ambient sound ${sound}:`, error)
+        })
+      }
+    })
+  }
+
   stopAmbientSound(): void {
-    const ambientSounds = ['rain', 'ocean', 'bells', 'spa']
+    const ambientSounds = ['rain', 'ocean', 'spa', 'nature', 'zen', 'calm']
     ambientSounds.forEach(sound => {
       const audio = this.audioElements.get(`ambient-${sound}`)
       if (audio) {

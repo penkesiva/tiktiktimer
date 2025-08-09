@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX } from 'lucide-react'
+import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX, Mic, MicOff, User, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { getAudioManager, playMeditationCue } from '@/lib/audio'
@@ -12,11 +12,30 @@ import { OptimizedImage } from '@/components/ui/Image'
 interface MeditationSettings {
   duration: number
   mode: 'silent' | 'guided' | 'ambient'
-  soundType?: 'rain' | 'ocean' | 'bells' | 'spa'
+  soundType?: 'rain' | 'ocean' | 'spa' | 'nature' | 'zen' | 'calm'
+  musicType?: 'rain' | 'ocean' | 'spa' | 'nature' | 'zen' | 'calm'
   volume: number
+  currentPreset?: string
 }
 
 const DURATION_OPTIONS = [1, 2, 5, 10, 15, 20, 30]
+
+const MEDITATION_PRESETS = [
+  { name: 'Quick Calm', duration: 5, mode: 'guided' as const, musicType: 'calm' as const },
+  { name: 'Mindful Break', duration: 10, mode: 'guided' as const, musicType: 'rain' as const },
+  { name: 'Nature Connection', duration: 10, mode: 'guided' as const, musicType: 'nature' as const },
+  { name: 'Zen Moment', duration: 10, mode: 'guided' as const, musicType: 'zen' as const },
+  { name: 'Deep Relaxation', duration: 15, mode: 'guided' as const, musicType: 'spa' as const },
+  { name: 'Ocean Peace', duration: 15, mode: 'guided' as const, musicType: 'ocean' as const },
+  { name: 'Forest Serenity', duration: 15, mode: 'guided' as const, musicType: 'nature' as const },
+  { name: 'Inner Calm', duration: 15, mode: 'guided' as const, musicType: 'calm' as const },
+  { name: 'Nature Escape', duration: 20, mode: 'guided' as const, musicType: 'rain' as const },
+  { name: 'Zen Mastery', duration: 20, mode: 'guided' as const, musicType: 'zen' as const },
+  { name: 'Zen Session', duration: 30, mode: 'guided' as const, musicType: 'ocean' as const },
+  { name: 'Wilderness Journey', duration: 30, mode: 'guided' as const, musicType: 'nature' as const },
+  { name: 'Ultimate Zen', duration: 30, mode: 'guided' as const, musicType: 'zen' as const },
+  { name: 'Deep Calm', duration: 30, mode: 'guided' as const, musicType: 'calm' as const }
+].sort((a, b) => a.duration - b.duration)
 
 const GUIDED_PROMPTS = [
   "Take a deep breath in... and out.",
@@ -32,8 +51,10 @@ const GUIDED_PROMPTS = [
 export default function MeditationTimerPage() {
   const [settings, setSettings] = useState<MeditationSettings>({
     duration: 5,
-    mode: 'silent',
-    volume: 0.7
+    mode: 'guided',
+    musicType: 'spa',
+    volume: 0.7,
+    currentPreset: 'Quick Calm'
   })
   
   const [time, setTime] = useState(settings.duration * 60)
@@ -41,14 +62,21 @@ export default function MeditationTimerPage() {
   const [isPaused, setIsPaused] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
+  const [isGuidedMuted, setIsGuidedMuted] = useState(false)
   const [currentPrompt, setCurrentPrompt] = useState<string | null>(null)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showSettingsChangeConfirm, setShowSettingsChangeConfirm] = useState(false)
+  const [pendingSettingsChange, setPendingSettingsChange] = useState<{ type: 'duration' | 'mode' | 'soundType' | 'musicType' | 'preset', value: any } | null>(null)
+  const [wasMusicPlaying, setWasMusicPlaying] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+  const [showAllPresets, setShowAllPresets] = useState(false)
+  const [isLargeScreen, setIsLargeScreen] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Audio functions using actual audio files
   const playStartChime = useCallback(async () => {
-    if (!isMuted) {
+    if (!isGuidedMuted) {
       setIsAudioPlaying(true)
       const audioManager = getAudioManager()
       await audioManager.playChimeAndWait('meditation-start-chime')
@@ -57,26 +85,35 @@ export default function MeditationTimerPage() {
     } else {
       setIsAudioPlaying(false)
     }
-  }, [isMuted])
+  }, [isGuidedMuted])
 
   const playEndChime = useCallback(async () => {
-    if (!isMuted) {
+    if (!isGuidedMuted) {
       setIsAudioPlaying(true)
       const audioManager = getAudioManager()
       await audioManager.playChimeAndWait('meditation-end-chime')
       await audioManager.playMeditationCueAndWait('meditation-complete')
       setIsAudioPlaying(false)
+      // Stop background music after the end chime completes
+      if (settings.musicType) {
+        audioManager.stopAmbientSound()
+      }
     } else {
       setIsAudioPlaying(false)
+      // Stop background music even if guided audio is muted
+      if (settings.musicType) {
+        const audioManager = getAudioManager()
+        audioManager.stopAmbientSound()
+      }
     }
-  }, [isMuted])
+  }, [isGuidedMuted, settings.musicType])
 
   const playMidwayChime = useCallback(async () => {
-    if (!isMuted && settings.mode === 'guided') {
+    if (!isGuidedMuted && settings.mode === 'guided') {
       const audioManager = getAudioManager()
       await audioManager.playChime('midway-chime')
     }
-  }, [isMuted, settings.mode])
+  }, [isGuidedMuted, settings.mode])
 
   // Timer logic
   useEffect(() => {
@@ -99,6 +136,29 @@ export default function MeditationTimerPage() {
     }
   }, [isRunning, isPaused, isAudioPlaying, playEndChime])
 
+  // Initialize mute state to match audio manager
+  useEffect(() => {
+    const audioManager = getAudioManager()
+    setIsMuted(audioManager.isMuted())
+  }, [])
+
+  // Set client flag to prevent hydration mismatch
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Check screen size for responsive preset display
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsLargeScreen(window.innerWidth >= 1280) // xl breakpoint
+    }
+    
+    checkScreenSize()
+    window.addEventListener('resize', checkScreenSize)
+    
+    return () => window.removeEventListener('resize', checkScreenSize)
+  }, [])
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -120,62 +180,113 @@ export default function MeditationTimerPage() {
 
   // Guided meditation prompts
   useEffect(() => {
-    if (isRunning && !isPaused && !isAudioPlaying && settings.mode === 'guided' && time > 0) {
+    if (isRunning && !isPaused && !isAudioPlaying && settings.mode === 'guided' && time > 0 && !isGuidedMuted) {
       const totalTime = settings.duration * 60
       const timeElapsed = totalTime - time
-      const promptInterval = Math.floor(totalTime / (GUIDED_PROMPTS.length + 1))
+      
+      // Determine number of prompts based on duration (4-8 prompts)
+      let numPrompts = 4 // minimum
+      if (settings.duration >= 10) numPrompts = 5
+      if (settings.duration >= 15) numPrompts = 6
+      if (settings.duration >= 20) numPrompts = 7
+      if (settings.duration >= 25) numPrompts = 8 // maximum
+      
+      const promptInterval = Math.floor(totalTime / (numPrompts + 1))
       
       if (timeElapsed > 0 && timeElapsed % promptInterval === 0) {
         const promptIndex = Math.floor(timeElapsed / promptInterval) - 1
-        if (promptIndex >= 0 && promptIndex < GUIDED_PROMPTS.length) {
+        if (promptIndex >= 0 && promptIndex < numPrompts) {
           setCurrentPrompt(GUIDED_PROMPTS[promptIndex])
-          // Play the actual audio prompt
-          playMeditationCue(`prompt-${promptIndex}`).catch(() => {
-            // Silent error handling for audio playback
-          })
+          // Play the actual audio prompt only if guided audio is not muted
+          if (!isGuidedMuted) {
+            const audioManager = getAudioManager()
+            const promptNames = [
+              'take-deep-breath',
+              'return-focus-breath',
+              'relax-jaw-shoulders',
+              'doing-well-stay-present',
+              'let-go-tension',
+              'focus-breathing-rhythm',
+              'thoughts-pass-clouds',
+              'feel-peace-within'
+            ]
+            if (promptIndex >= 0 && promptIndex < promptNames.length) {
+              audioManager.playPrompt(promptNames[promptIndex]).catch(() => {
+                // Silent error handling for audio playback
+              })
+            }
+          }
           setTimeout(() => setCurrentPrompt(null), 5000) // Show prompt for 5 seconds
         }
       }
     }
-  }, [isRunning, isPaused, isAudioPlaying, settings.mode, time, settings.duration])
+  }, [isRunning, isPaused, isAudioPlaying, settings.mode, time, settings.duration, isGuidedMuted])
 
-  // Ambient sound playback
+  // Background music playback for all presets
   useEffect(() => {
-    if (isRunning && !isPaused && settings.mode === 'ambient' && settings.soundType && !isMuted) {
-      // Play ambient sound when meditation starts
-      const playAmbientSound = async () => {
+    if (isRunning && !isPaused && settings.musicType && !isMuted) {
+      // Play background music when meditation starts and ensure it loops
+      const playBackgroundMusic = async () => {
         try {
           const audioManager = getAudioManager()
-          await audioManager.playAmbientSound(settings.soundType!)
+          await audioManager.playAmbientSound(settings.musicType!)
         } catch (error) {
-          console.error('Error playing ambient sound:', error)
+          console.error('Error playing background music:', error)
         }
       }
       
-      if (time === settings.duration * 60) { // Only when meditation starts
-        playAmbientSound()
+      // Start background music when meditation begins (at full duration)
+      if (time === settings.duration * 60) {
+        playBackgroundMusic()
       }
-    } else if (!isRunning && settings.mode === 'ambient') {
-      // Stop ambient sound when meditation stops
+    } else if (isPaused && settings.musicType) {
+      // Pause background music when meditation is paused
+      const audioManager = getAudioManager()
+      audioManager.pauseAmbientSound()
+    } else if (isMuted && settings.musicType) {
+      // Stop background music when muted
       const audioManager = getAudioManager()
       audioManager.stopAmbientSound()
     }
-  }, [isRunning, isPaused, settings.mode, settings.soundType, time, settings.duration, isMuted])
+  }, [isRunning, isPaused, settings.musicType, time, settings.duration, isMuted])
+
+  // Stop background music when timer is reset or meditation is completely stopped
+  useEffect(() => {
+    if (!isRunning && time === settings.duration * 60 && settings.musicType) {
+      // Timer has been reset - stop background music
+      const audioManager = getAudioManager()
+      audioManager.stopAmbientSound()
+    }
+  }, [isRunning, time, settings.duration, settings.musicType])
 
   const startTimer = useCallback(async () => {
     setIsRunning(true)
     setIsPaused(false)
     setTime(settings.duration * 60)
+    setWasMusicPlaying(settings.musicType ? true : false)
     await playStartChime()
-  }, [settings.duration, playStartChime])
+  }, [settings.duration, playStartChime, settings.musicType])
 
   const pauseTimer = useCallback(() => {
     setIsPaused(true)
-  }, [])
+    // Pause background music if playing (don't stop it completely)
+    if (settings.musicType && !isMuted) {
+      setWasMusicPlaying(true)
+      const audioManager = getAudioManager()
+      audioManager.pauseAmbientSound()
+    } else {
+      setWasMusicPlaying(false)
+    }
+  }, [settings.musicType, isMuted])
 
   const resumeTimer = useCallback(() => {
     setIsPaused(false)
-  }, [])
+    // Resume background music if it was playing before pause and not muted
+    if (settings.musicType && !isMuted && wasMusicPlaying) {
+      const audioManager = getAudioManager()
+      audioManager.resumeAmbientSound()
+    }
+  }, [settings.musicType, isMuted, wasMusicPlaying])
 
   const resetTimer = useCallback(() => {
     setIsRunning(false)
@@ -183,6 +294,7 @@ export default function MeditationTimerPage() {
     setTime(settings.duration * 60)
     setCurrentPrompt(null)
     setShowResetConfirm(false)
+    setWasMusicPlaying(false)
   }, [settings.duration])
 
   const confirmReset = useCallback(() => {
@@ -190,58 +302,158 @@ export default function MeditationTimerPage() {
   }, [])
 
   const toggleMute = useCallback(() => {
+    const newMutedState = !isMuted
+    setIsMuted(newMutedState)
+    
+    // Stop or resume background music
     const audioManager = getAudioManager()
-    if (isMuted) {
-      audioManager.unmute()
-      setIsMuted(false)
-    } else {
-      audioManager.mute()
-      setIsMuted(true)
+    if (newMutedState) {
+      audioManager.stopAmbientSound()
+    } else if (isRunning && settings.musicType) {
+      audioManager.playAmbientSound(settings.musicType)
     }
-  }, [isMuted])
+  }, [isMuted, isRunning, settings.musicType])
+
+  const toggleGuidedMute = useCallback(() => {
+    const newGuidedMutedState = !isGuidedMuted
+    setIsGuidedMuted(newGuidedMutedState)
+    
+    // If muting guided audio, clear current prompt
+    if (newGuidedMutedState) {
+      setCurrentPrompt(null)
+    }
+  }, [isGuidedMuted])
 
   const selectDuration = (duration: number) => {
-    setSettings(prev => ({ ...prev, duration }))
-    resetTimer()
+    if (isRunning) {
+      setPendingSettingsChange({ type: 'duration', value: duration })
+      setShowSettingsChangeConfirm(true)
+    } else {
+      setSettings(prev => ({ ...prev, duration }))
+      resetTimer()
+    }
   }
 
   const selectMode = (mode: MeditationSettings['mode']) => {
-    setSettings(prev => ({ ...prev, mode }))
-    // Clear any current prompt when mode changes
-    setCurrentPrompt(null)
-    resetTimer()
+    if (isRunning) {
+      setPendingSettingsChange({ type: 'mode', value: mode })
+      setShowSettingsChangeConfirm(true)
+    } else {
+      setSettings(prev => ({ ...prev, mode }))
+      setCurrentPrompt(null)
+      resetTimer()
+    }
   }
+
+  const selectSoundType = (soundType: MeditationSettings['soundType']) => {
+    if (isRunning) {
+      setPendingSettingsChange({ type: 'soundType', value: soundType })
+      setShowSettingsChangeConfirm(true)
+    } else {
+      setSettings(prev => ({ ...prev, soundType }))
+      // Stop any current ambient sound and reset
+      const audioManager = getAudioManager()
+      audioManager.stopAmbientSound()
+      resetTimer()
+    }
+  }
+
+  const confirmSettingsChange = () => {
+    if (pendingSettingsChange) {
+      const { type, value } = pendingSettingsChange
+      
+      // Stop current session
+      setIsRunning(false)
+      setIsPaused(false)
+      setCurrentPrompt(null)
+      
+      // Stop ambient sounds
+      const audioManager = getAudioManager()
+      audioManager.stopAmbientSound()
+      
+      // Apply the new setting
+      if (type === 'duration') {
+        setSettings(prev => ({ ...prev, duration: value }))
+        setTime(value * 60)
+      } else if (type === 'mode') {
+        setSettings(prev => ({ ...prev, mode: value }))
+        setCurrentPrompt(null)
+      } else if (type === 'soundType') {
+        setSettings(prev => ({ ...prev, soundType: value }))
+      } else if (type === 'preset') {
+        setSettings({
+          duration: value.duration,
+          mode: value.mode,
+          soundType: value.soundType,
+          volume: 0.7,
+          currentPreset: value.name
+        })
+        setTime(value.duration * 60)
+        setCurrentPrompt(null)
+      }
+      
+      setPendingSettingsChange(null)
+      setShowSettingsChangeConfirm(false)
+    }
+  }
+
+  const cancelSettingsChange = () => {
+    setPendingSettingsChange(null)
+    setShowSettingsChangeConfirm(false)
+  }
+
+  const applyPreset = useCallback((preset: typeof MEDITATION_PRESETS[0]) => {
+    if (isRunning) {
+      setPendingSettingsChange({ type: 'preset', value: preset })
+      setShowSettingsChangeConfirm(true)
+    } else {
+      setSettings({
+        duration: preset.duration,
+        mode: preset.mode,
+        musicType: preset.musicType,
+        volume: 0.7,
+        currentPreset: preset.name
+      })
+      setTime(preset.duration * 60)
+      setCurrentPrompt(null)
+      // Stop any current ambient sound
+      const audioManager = getAudioManager()
+      audioManager.stopAmbientSound()
+    }
+  }, [isRunning])
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100 relative overflow-hidden">
       {/* Falling Animation Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Falling particles */}
-        {Array.from({ length: 15 }).map((_, i) => (
-          <div
-            key={`particle-${i}`}
-            className="falling-particle"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 8}s`,
-            }}
-          />
-        ))}
-        
-        {/* Falling snowflakes */}
-        {Array.from({ length: 10 }).map((_, i) => (
-          <div
-            key={`snowflake-${i}`}
-            className="falling-snowflake"
-            style={{
-              left: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 6}s`,
-            }}
-          >
-            ❄
-          </div>
-        ))}
-      </div>
+      {isClient && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Falling particles */}
+          {Array.from({ length: 15 }).map((_, i) => (
+            <div
+              key={`particle-${i}`}
+              className="falling-particle"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 8}s`,
+              }}
+            />
+          ))}
+          
+          {/* Falling snowflakes */}
+          {Array.from({ length: 10 }).map((_, i) => (
+            <div
+              key={`snowflake-${i}`}
+              className="falling-snowflake"
+              style={{
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 6}s`,
+              }}
+            >
+              ❄
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Strategic Background Images - Fewer, Bigger, Better Positioned */}
       <div className="absolute top-20 right-4 w-56 h-56">
@@ -275,151 +487,192 @@ export default function MeditationTimerPage() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">Find Your Peace</h1>
 
             <div className="flex items-center space-x-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleMute}
-                title={isMuted ? "Unmute" : "Mute"}
-              >
-                {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowSettings(!showSettings)}
-              >
-                <Settings className="w-5 h-5" />
-              </Button>
+              {/* Volume controls moved to timer card */}
             </div>
           </div>
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Top Ad */}
-        <div className="mb-6">
+        <div className="mb-4">
           <MeditationTopAd />
         </div>
 
-        {/* Settings Panel */}
-        {showSettings && (
-          <div className="card-calm mb-8 relative overflow-hidden">
-            <h3 className="text-2xl font-bold text-calm-800 mb-6">Meditation Settings</h3>
-            
-            {/* Duration Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-calm-700 mb-3">
-                Duration
-              </label>
-              <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
-                {DURATION_OPTIONS.map((duration) => (
-                  <button
-                    key={duration}
-                    onClick={() => selectDuration(duration)}
-                    className={cn(
-                      'p-3 rounded-xl border-2 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
-                      settings.duration === duration
-                        ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
-                        : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
-                    )}
-                  >
-                    <div className="font-bold text-lg">{duration}</div>
-                    <div className="text-sm text-gray-600">min</div>
-                  </button>
-                ))}
-              </div>
-            </div>
+        {/* Meditation Presets */}
+        <div className="card-calm mb-6 relative overflow-hidden">
+          <h3 className="text-lg md:text-xl font-bold text-calm-800 mb-3 md:mb-4">Quick Presets</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-3">
+            {/* Show first 6 presets on small screens, first 8 on large screens (4x2 grid) */}
+            {MEDITATION_PRESETS.slice(0, isLargeScreen ? 8 : 6).map((preset) => (
+              <button
+                key={preset.name}
+                onClick={() => applyPreset(preset)}
+                className={cn(
+                  'p-2 md:p-3 border rounded-xl hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all duration-300 text-left relative min-h-[70px] md:min-h-[80px]',
+                  settings.currentPreset === preset.name
+                    ? 'bg-gradient-to-br from-calm-200 to-calm-300 border-calm-400 shadow-md'
+                    : 'bg-gradient-to-br from-calm-100 to-calm-200 border-calm-200 hover:border-calm-300'
+                )}
+              >
+                <div className="absolute top-1 right-1 md:top-2 md:right-2 text-xs font-medium text-calm-600 bg-white/80 px-1.5 py-0.5 rounded-md">
+                  {preset.duration}min
+                </div>
+                <div className={cn(
+                  'font-bold text-xs md:text-sm',
+                  settings.currentPreset === preset.name ? 'text-calm-900' : 'text-calm-800'
+                )}>
+                  {preset.name}
+                </div>
+                <div className="text-xs text-calm-500 mt-0.5 capitalize">
+                  {preset.musicType && `${preset.musicType} • `}{preset.mode}
+                </div>
+              </button>
+            ))}
+          </div>
 
-            {/* Mode Selection */}
-            <div className="mb-6">
-              <label className="block text-sm font-medium text-calm-700 mb-3">
-                Mode
-              </label>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <button
-                  onClick={() => selectMode('silent')}
-                  className={cn(
-                    'p-4 rounded-xl border-2 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
-                    settings.mode === 'silent'
-                      ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
-                      : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
-                  )}
-                >
-                  <div className="font-bold text-lg">Silent</div>
-                  <div className="text-sm text-gray-600">Chime at start and end only</div>
-                </button>
-                <button
-                  onClick={() => selectMode('guided')}
-                  className={cn(
-                    'p-4 rounded-xl border-2 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
-                    settings.mode === 'guided'
-                      ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
-                      : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
-                  )}
-                >
-                  <div className="font-bold text-lg">Guided</div>
-                  <div className="text-sm text-gray-600">Voice prompts every few minutes</div>
-                </button>
-                <button
-                  onClick={() => selectMode('ambient')}
-                  className={cn(
-                    'p-4 rounded-xl border-2 text-left transition-all duration-300 hover:shadow-lg hover:-translate-y-1',
-                    settings.mode === 'ambient'
-                      ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
-                      : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
-                  )}
-                >
-                  <div className="font-bold text-lg">Ambient</div>
-                  <div className="text-sm text-gray-600">Background sounds (rain, ocean, bells)</div>
-                </button>
-              </div>
-            </div>
+          {/* Collapsible section for additional presets */}
+          {MEDITATION_PRESETS.length > (isLargeScreen ? 8 : 6) && (
+            <div className="mt-3">
+              <button
+                onClick={() => setShowAllPresets(!showAllPresets)}
+                className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-calm-50 hover:bg-calm-100 border border-calm-200 rounded-lg transition-all duration-200 text-calm-700 hover:text-calm-800 text-sm"
+              >
+                <span className="font-medium">
+                  {showAllPresets ? 'Show Less' : `+${MEDITATION_PRESETS.length - (isLargeScreen ? 8 : 6)} More`}
+                </span>
+                {showAllPresets ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
+              </button>
 
-            {/* Ambient Sound Selection */}
-            {settings.mode === 'ambient' && (
-              <div>
-                <label className="block text-sm font-medium text-calm-700 mb-3">
-                  Ambient Sound
-                </label>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
-                  {['rain', 'ocean', 'bells', 'spa'].map((sound) => (
+              {/* Additional presets */}
+              {showAllPresets && (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-3 mt-3 animate-fade-in">
+                  {MEDITATION_PRESETS.slice(isLargeScreen ? 8 : 6).map((preset) => (
                     <button
-                      key={sound}
-                      onClick={() => setSettings(prev => ({ ...prev, soundType: sound as any }))}
+                      key={preset.name}
+                      onClick={() => applyPreset(preset)}
                       className={cn(
-                        'p-3 rounded-xl border-2 text-center transition-all duration-300 hover:shadow-lg hover:-translate-y-1 capitalize',
-                        settings.soundType === sound
-                          ? 'border-calm-500 bg-gradient-to-br from-calm-100 to-calm-200 text-calm-700 shadow-lg'
-                          : 'border-calm-200 hover:border-calm-300 bg-white/80 backdrop-blur-sm hover:bg-white'
+                        'p-2 md:p-3 border rounded-xl hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all duration-300 text-left relative min-h-[70px] md:min-h-[80px]',
+                        settings.currentPreset === preset.name
+                          ? 'bg-gradient-to-br from-calm-200 to-calm-300 border-calm-400 shadow-md'
+                          : 'bg-gradient-to-br from-calm-100 to-calm-200 border-calm-200 hover:border-calm-300'
                       )}
                     >
-                      {sound}
+                      <div className="absolute top-1 right-1 md:top-2 md:right-2 text-xs font-medium text-calm-600 bg-white/80 px-1.5 py-0.5 rounded-md">
+                        {preset.duration}min
+                      </div>
+                      <div className={cn(
+                        'font-bold text-xs md:text-sm',
+                        settings.currentPreset === preset.name ? 'text-calm-900' : 'text-calm-800'
+                      )}>
+                        {preset.name}
+                      </div>
+                      <div className="text-xs text-calm-500 mt-0.5 capitalize">
+                        {preset.musicType && `${preset.musicType} • `}{preset.mode}
+                      </div>
                     </button>
                   ))}
                 </div>
-              </div>
-            )}
-          </div>
-        )}
+              )}
+            </div>
+          )}
+        </div>
 
         {/* Timer Display */}
         <div className="card-calm relative overflow-hidden">
-          <TimerDisplay
-            time={time}
-            isRunning={isRunning}
-            isPaused={isPaused}
-            isAudioPlaying={isAudioPlaying}
-            className="mb-8"
-          />
-
-          {/* Guided Prompt Display */}
-          {currentPrompt && (
-            <div className="mb-6 p-6 bg-gradient-to-br from-calm-100 to-calm-200 border border-calm-200 rounded-2xl shadow-lg">
-              <p className="text-calm-800 text-center text-xl italic font-medium">
-                "{currentPrompt}"
-              </p>
+          {/* Volume Controls - Top Right */}
+          <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2">
+            {/* Background Music Mute */}
+            <div className="flex flex-col items-center">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleMute}
+                title={isMuted ? "Unmute Music" : "Mute Music"}
+                className={cn(
+                  "backdrop-blur-sm transition-colors",
+                  isMuted ? "text-red-500 hover:text-red-600 hover:bg-red-50/80" : "text-calm-600 hover:text-calm-700 hover:bg-calm-50/80"
+                )}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </Button>
+              <span className="text-xs font-medium text-calm-600 mt-1">Music</span>
             </div>
+            {/* Guided Audio Mute */}
+            {settings.mode === 'guided' && (
+              <div className="flex flex-col items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={toggleGuidedMute}
+                  title={isGuidedMuted ? "Unmute Guided Audio" : "Mute Guided Audio"}
+                  className={cn(
+                    "backdrop-blur-sm transition-colors",
+                    isGuidedMuted ? "text-red-500 hover:text-red-600 hover:bg-red-50/80" : "text-calm-600 hover:text-calm-700 hover:bg-calm-50/80"
+                  )}
+                >
+                  <User className="w-4 h-4" />
+                </Button>
+                <span className="text-xs font-medium text-calm-600 mt-1">Voice</span>
+              </div>
+            )}
+          </div>
+
+          {/* Filling Animation Background */}
+          {isRunning && (
+            <div 
+              className="absolute inset-0 bg-gradient-to-r from-calm-200/30 to-calm-300/30 transition-all duration-1000 ease-out"
+              style={{
+                width: `${Math.min(100, ((settings.duration * 60 - time) / (settings.duration * 60)) * 100)}%`
+              }}
+            />
           )}
+
+          {/* Current Timer Info */}
+          <div className="text-center mb-4">
+            <div className="text-xs md:text-sm font-medium text-calm-600 bg-calm-100 px-3 md:px-4 py-2 rounded-lg inline-block max-w-full">
+              <div className="hidden sm:block">
+                <span className="font-bold">{settings.currentPreset}</span> • {settings.duration}min • {settings.mode} {settings.musicType && `• ${settings.musicType}`}
+              </div>
+              <div className="block sm:hidden">
+                <span className="font-bold">{settings.currentPreset}</span> • {settings.duration}m • {settings.mode}
+              </div>
+            </div>
+          </div>
+
+          <div className="mb-1">
+            <TimerDisplay
+              time={time}
+              isRunning={isRunning}
+              isPaused={isPaused}
+              isAudioPlaying={isAudioPlaying}
+              className="!mb-0"
+              showStatusDots={false}
+              showAudioIndicator={false}
+            />
+          </div>
+
+          {/* Custom meditation status dots */}
+          <div className="flex items-center justify-center mb-4">
+            <div className="flex items-center space-x-2">
+              <div className={cn(
+                'w-2 h-2 rounded-full transition-all duration-300',
+                isRunning && !isPaused ? 'bg-calm-400 animate-pulse' : 
+                isPaused ? 'bg-calm-300' : 'bg-calm-200'
+              )} />
+              <div className={cn(
+                'w-2 h-2 rounded-full transition-all duration-300',
+                isRunning && !isPaused ? 'bg-calm-400 animate-pulse' : 
+                isPaused ? 'bg-calm-300' : 'bg-calm-200'
+              )} />
+            </div>
+          </div>
+
+          {/* Guided prompts are now handled by audio only */}
 
           {/* Controls */}
           <div className="flex items-center justify-center space-x-3 md:space-x-4">
@@ -499,6 +752,37 @@ export default function MeditationTimerPage() {
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
                 >
                   Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Change Confirmation Modal */}
+      {showSettingsChangeConfirm && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Settings className="w-8 h-8 text-orange-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Change Settings?</h3>
+              <p className="text-gray-600 mb-6">
+                You have an active meditation session. Changing settings will stop your current session. Do you want to continue?
+              </p>
+              <div className="flex space-x-3">
+                <button
+                  onClick={cancelSettingsChange}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmSettingsChange}
+                  className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-xl hover:bg-orange-700 transition-colors"
+                >
+                  Change Settings
                 </button>
               </div>
             </div>

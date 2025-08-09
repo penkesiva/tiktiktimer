@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Play, Pause, RotateCcw, Settings } from 'lucide-react'
+import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX } from 'lucide-react'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -42,6 +42,7 @@ export default function WorkoutTimerPage() {
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
   const [showCustomTimer, setShowCustomTimer] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [isMuted, setIsMuted] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Audio functions
@@ -186,6 +187,12 @@ export default function WorkoutTimerPage() {
 
   const confirmReset = () => {
     setShowResetConfirm(true)
+  }
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted)
+    const audioManager = getAudioManager()
+    audioManager.setVolume(isMuted ? 0.7 : 0)
   }
 
   const applyPreset = useCallback((preset: typeof PRESET_WORKOUTS[0]) => {
@@ -372,6 +379,19 @@ export default function WorkoutTimerPage() {
 
         {/* Timer Display */}
         <div className="card-sport relative overflow-hidden">
+          {/* Volume Controls - Top Right */}
+          <div className="absolute top-4 right-4 z-10">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleMute}
+              title={isMuted ? "Unmute" : "Mute"}
+              className="text-sport-600 hover:text-sport-700 hover:bg-sport-50/80 backdrop-blur-sm"
+            >
+              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            </Button>
+          </div>
+
           {/* Filling Animation Background */}
           {isRunning && (
             <div 
