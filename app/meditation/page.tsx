@@ -12,7 +12,7 @@ import { OptimizedImage } from '@/components/ui/Image'
 interface MeditationSettings {
   duration: number
   mode: 'silent' | 'guided' | 'ambient'
-  soundType?: 'rain' | 'ocean' | 'bells'
+  soundType?: 'rain' | 'ocean' | 'bells' | 'spa'
   volume: number
 }
 
@@ -138,6 +138,29 @@ export default function MeditationTimerPage() {
       }
     }
   }, [isRunning, isPaused, isAudioPlaying, settings.mode, time, settings.duration])
+
+  // Ambient sound playback
+  useEffect(() => {
+    if (isRunning && !isPaused && settings.mode === 'ambient' && settings.soundType && !isMuted) {
+      // Play ambient sound when meditation starts
+      const playAmbientSound = async () => {
+        try {
+          const audioManager = getAudioManager()
+          await audioManager.playAmbientSound(settings.soundType!)
+        } catch (error) {
+          console.error('Error playing ambient sound:', error)
+        }
+      }
+      
+      if (time === settings.duration * 60) { // Only when meditation starts
+        playAmbientSound()
+      }
+    } else if (!isRunning && settings.mode === 'ambient') {
+      // Stop ambient sound when meditation stops
+      const audioManager = getAudioManager()
+      audioManager.stopAmbientSound()
+    }
+  }, [isRunning, isPaused, settings.mode, settings.soundType, time, settings.duration, isMuted])
 
   const startTimer = useCallback(async () => {
     setIsRunning(true)
@@ -358,8 +381,8 @@ export default function MeditationTimerPage() {
                 <label className="block text-sm font-medium text-calm-700 mb-3">
                   Ambient Sound
                 </label>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  {['rain', 'ocean', 'bells'].map((sound) => (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {['rain', 'ocean', 'bells', 'spa'].map((sound) => (
                     <button
                       key={sound}
                       onClick={() => setSettings(prev => ({ ...prev, soundType: sound as any }))}

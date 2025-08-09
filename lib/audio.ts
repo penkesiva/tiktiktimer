@@ -9,6 +9,8 @@ interface AudioManager {
   playChimeAndWait: (chimeName: string) => Promise<void>
   playWorkoutCueAndWait: (cueName: string) => Promise<void>
   playMeditationCueAndWait: (cueName: string) => Promise<void>
+  playAmbientSound: (soundType: string) => Promise<void>
+  stopAmbientSound: () => void
   setVolume: (volume: number) => void
   mute: () => void
   unmute: () => void
@@ -89,6 +91,16 @@ class AudioManagerImpl implements AudioManager {
       const audio = new Audio(`/audio/meditation/cues/${cue}.mp3`)
       audio.preload = 'auto'
       this.audioElements.set(cue, audio)
+    })
+
+    // Preload ambient sounds
+    const ambientSounds = ['rain', 'ocean', 'bells', 'spa']
+    
+    ambientSounds.forEach(sound => {
+      const audio = new Audio(`/audio/meditation/ambient/${sound}.mp3`)
+      audio.preload = 'auto'
+      audio.loop = true // Ambient sounds should loop
+      this.audioElements.set(`ambient-${sound}`, audio)
     })
   }
 
@@ -258,6 +270,37 @@ class AudioManagerImpl implements AudioManager {
     this.audioElements.forEach(audio => {
       audio.pause()
       audio.currentTime = 0
+    })
+  }
+
+  async playAmbientSound(soundType: string): Promise<void> {
+    if (this.muted) return
+
+    // Stop any currently playing ambient sounds first
+    this.stopAmbientSound()
+
+    const audio = this.audioElements.get(`ambient-${soundType}`)
+    if (audio) {
+      audio.volume = this.volume * 0.5 // Ambient sounds at half volume
+      try {
+        await audio.play()
+      } catch (error) {
+        console.error(`Error playing ambient sound ${soundType}:`, error)
+        console.warn(`Make sure the file /audio/meditation/ambient/${soundType}.mp3 exists`)
+      }
+    } else {
+      console.warn(`Ambient sound file for ${soundType} not found. Please add /audio/meditation/ambient/${soundType}.mp3`)
+    }
+  }
+
+  stopAmbientSound(): void {
+    const ambientSounds = ['rain', 'ocean', 'bells', 'spa']
+    ambientSounds.forEach(sound => {
+      const audio = this.audioElements.get(`ambient-${sound}`)
+      if (audio) {
+        audio.pause()
+        audio.currentTime = 0
+      }
     })
   }
 }
