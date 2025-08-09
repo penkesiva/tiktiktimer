@@ -25,20 +25,20 @@
 #### Home Page (`app/page.tsx`)
 - **TikTikTimer Logo**: Top-right decorative element (128x128px, 20% opacity)
 - **Workout Image 1**: Bottom-left decorative element (96x96px, 15% opacity)
-- **Yoga Image**: Hero section decorative element (64x64px, 20% opacity)
+- **Workout Image 2**: Hero section decorative element (64x64px, 20% opacity)
 - **Workout Image 2**: Workout card background (64x64px, 20% opacity)
-- **Yoga Image**: Meditation card background (64x64px, 20% opacity)
+- **Meditation Image**: Meditation card background (64x64px, 20% opacity)
 
 #### Workout Timer (`app/workout/page.tsx`)
 - **Workout Image 1**: Background decorative elements (80x80px, 15% opacity)
 - **Workout Image 2**: Background decorative elements (64x64px, 10% opacity)
 - **Workout Image 1**: Card backgrounds (48x48px, 15% opacity)
-- **Workout Image 2**: Card backgrounds (32x32px, 20% opacity)
+- **Workout Image 2**: Card backgrounds (48x48px, 15% opacity)
 
 #### Meditation Timer (`app/meditation/page.tsx`)
-- **Yoga Image**: Background decorative elements (80x80px, 15% opacity)
-- **Yoga Image**: Background decorative elements (64x64px, 10% opacity)
-- **Yoga Image**: Card backgrounds (48x48px, 15% opacity)
+- **Meditation Image**: Background decorative elements (80x80px, 15% opacity)
+- **Workout Image 1**: Background decorative elements (64x64px, 10% opacity)
+- **Meditation Image**: Card backgrounds (48x48px, 15% opacity)
 
 ### ✅ Design Integration
 
@@ -49,8 +49,8 @@
 - **Responsive Design**: Images scale appropriately on all devices
 
 #### Color Theme Integration
-- **Workout Images**: Integrated with sport-themed color scheme
-- **Yoga Images**: Integrated with calm-themed color scheme
+- **Workout Images**: Integrated with sport-themed color schemes
+- **Meditation Images**: Integrated with calm-themed color schemes
 - **Logo**: Integrated with gradient text effects
 
 #### Performance Optimization
@@ -85,7 +85,7 @@
 ```typescript
 // Main image component
 <OptimizedImage
-  src="/images/workout1.jpg"
+  src="/images/workout1.png"
   alt="Workout"
   width={80}
   height={80}
@@ -95,8 +95,8 @@
 // Decorative background image
 <div className="absolute top-32 right-8 w-20 h-20 opacity-15">
   <OptimizedImage
-    src="/images/workout1.jpg"
-    alt="Workout"
+    src="/images/meditation.png"
+    alt="Meditation"
     width={80}
     height={80}
     className="rounded-full"
@@ -123,10 +123,10 @@
 ## 📊 Image Specifications
 
 ### Required Images
-1. **workout1.jpg** - First workout image
-2. **workout2.jpg** - Second workout image
-3. **yoga.jpg** - Yoga/meditation image
-4. **tiktiktimer.png** - App logo
+1. **workout1.png** - First workout image
+2. **workout2.png** - Second workout image
+3. **meditation.png** - Meditation image
+4. **logo.png** - App logo
 
 ### Recommended Sizes
 - **Square Format**: 300x300px or larger
@@ -135,8 +135,7 @@
 - **Quality**: High quality for good display
 
 ### File Formats
-- **JPEG**: For workout and yoga images
-- **PNG**: For logo (supports transparency)
+- **PNG**: For all images (supports transparency and better quality)
 
 ## 🎯 Benefits
 
@@ -188,4 +187,4 @@
 
 ## 🎉 Conclusion
 
-The image integration provides a **comprehensive, visually appealing, and performance-optimized** solution for enhancing your timer app. With strategic placements, excellent design integration, and full optimization, this implementation will significantly enhance the visual appeal of your application while maintaining excellent performance and user experience.
+The image integration provides a **comprehensive, visually appealing, and performance-optimized** solution for enhancing your timer app. With strategic placements, excellent design integration, and full optimization, this implementation will significantly enhance the visual appeal of your application while maintaining excellent performance and user experience. The use of PNG format provides better quality and transparency support for all images.

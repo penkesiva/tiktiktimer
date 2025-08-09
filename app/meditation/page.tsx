@@ -174,23 +174,23 @@ export default function MeditationTimerPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100 relative overflow-hidden">
-      {/* Decorative Background Images */}
-      <div className="absolute top-32 right-8 w-20 h-20 opacity-15">
+      {/* Strategic Background Images - Fewer, Bigger, Better Positioned */}
+      <div className="absolute top-20 right-4 w-56 h-56">
         <OptimizedImage
-          src="/images/yoga.jpg"
-          alt="Yoga"
-          width={80}
-          height={80}
+          src="/images/meditation2.png"
+          alt="Meditation Timer - Mindfulness Background"
+          width={224}
+          height={224}
           className="rounded-full"
         />
       </div>
       
-      <div className="absolute bottom-32 left-8 w-16 h-16 opacity-10">
+      <div className="absolute bottom-4 left-4 w-48 h-48">
         <OptimizedImage
-          src="/images/yoga.jpg"
-          alt="Yoga"
-          width={64}
-          height={64}
+          src="/images/meditation3.png"
+          alt="Meditation Timer - Zen Practice Background"
+          width={192}
+          height={192}
           className="rounded-full"
         />
       </div>
@@ -198,12 +198,13 @@ export default function MeditationTimerPage() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
+          <div className="flex items-center justify-between py-3">
             <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-calm-600 transition-colors">
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back</span>
             </Link>
-            <h1 className="text-2xl font-bold gradient-text-calm">Meditation Timer</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">Find Your Peace</h1>
+
             <div className="flex items-center space-x-2">
               <Button
                 variant="ghost"
@@ -234,17 +235,6 @@ export default function MeditationTimerPage() {
         {/* Settings Panel */}
         {showSettings && (
           <div className="card-calm mb-8 relative overflow-hidden">
-            {/* Decorative Image */}
-            <div className="absolute top-4 right-4 w-12 h-12 opacity-15">
-              <OptimizedImage
-                src="/images/yoga.jpg"
-                alt="Yoga"
-                width={48}
-                height={48}
-                className="rounded-full"
-              />
-            </div>
-            
             <h3 className="text-2xl font-bold text-calm-800 mb-6">Meditation Settings</h3>
             
             {/* Duration Selection */}
@@ -345,17 +335,6 @@ export default function MeditationTimerPage() {
 
         {/* Timer Display */}
         <div className="card-calm relative overflow-hidden">
-          {/* Decorative Image */}
-          <div className="absolute top-4 right-4 w-12 h-12 opacity-15">
-            <OptimizedImage
-              src="/images/yoga.jpg"
-              alt="Yoga"
-              width={48}
-              height={48}
-              className="rounded-full"
-            />
-          </div>
-          
           <TimerDisplay
             time={time}
             isRunning={isRunning}

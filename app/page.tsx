@@ -1,28 +1,57 @@
 import Link from 'next/link'
-import { Dumbbell, Heart, Play } from 'lucide-react'
+import { Play } from 'lucide-react'
 import { BannerAd } from '@/components/ads/GoogleAdsense'
 import { OptimizedImage } from '@/components/ui/Image'
 
 export default function HomePage() {
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 relative overflow-hidden">
-      {/* Decorative Background Images */}
-      <div className="absolute top-20 right-10 w-32 h-32 opacity-20">
+      {/* Falling Animation Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {/* Falling particles */}
+        {Array.from({ length: 20 }).map((_, i) => (
+          <div
+            key={`particle-${i}`}
+            className="falling-particle"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 8}s`,
+            }}
+          />
+        ))}
+        
+        {/* Falling snowflakes */}
+        {Array.from({ length: 15 }).map((_, i) => (
+          <div
+            key={`snowflake-${i}`}
+            className="falling-snowflake"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 6}s`,
+            }}
+          >
+            ❄
+          </div>
+        ))}
+      </div>
+
+      {/* Strategic Background Images - Fewer, Bigger, Better Positioned */}
+      <div className="absolute top-20 right-4 w-64 h-64">
         <OptimizedImage
           src="/images/tiktiktimer.png"
-          alt="TikTikTimer Logo"
-          width={128}
-          height={128}
+          alt="TikTikTimer - Professional Timer App Logo"
+          width={256}
+          height={256}
           className="rounded-full"
         />
       </div>
       
-      <div className="absolute bottom-20 left-10 w-24 h-24 opacity-15">
+      <div className="absolute bottom-4 left-4 w-56 h-56">
         <OptimizedImage
-          src="/images/workout1.jpg"
-          alt="Workout"
-          width={96}
-          height={96}
+          src="/images/workout3.png"
+          alt="Workout Timer - Fitness Training"
+          width={224}
+          height={224}
           className="rounded-full"
         />
       </div>
@@ -30,16 +59,21 @@ export default function HomePage() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+          <div className="flex items-center justify-between py-3">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-sport-500 to-energy-500 rounded-xl flex items-center justify-center shadow-lg">
-                <Play className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-2xl font-bold gradient-text">Timer</h1>
+              <OptimizedImage
+                src="/images/logo.png"
+                alt="TikTikTimer Logo"
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">TikTikTimer</h1>
             </div>
             <nav className="hidden md:flex space-x-8">
-              <Link href="/contact" className="text-gray-600 hover:text-sport-600 transition-colors font-medium">
-                Contact
+              <Link href="/feedback" className="text-gray-600 hover:text-sport-600 transition-colors font-medium">
+                Feedback
               </Link>
             </nav>
           </div>
@@ -56,18 +90,7 @@ export default function HomePage() {
         <div className="max-w-4xl w-full">
           {/* Hero Section */}
           <div className="text-center mb-16 animate-fade-in relative">
-            {/* Decorative Image */}
-            <div className="absolute -top-8 -left-8 w-16 h-16 opacity-20">
-              <OptimizedImage
-                src="/images/yoga.jpg"
-                alt="Yoga"
-                width={64}
-                height={64}
-                className="rounded-full"
-              />
-            </div>
-            
-            <h2 className="text-5xl md:text-7xl font-bold gradient-text mb-6 leading-tight">
+            <h2 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-6 leading-tight">
               Focus on Your Practice
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
@@ -80,19 +103,14 @@ export default function HomePage() {
             {/* Workout Timer */}
             <Link href="/workout" className="group">
               <div className="card-sport hover:shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-2 relative overflow-hidden">
-                {/* Background Image */}
-                <div className="absolute top-4 right-4 w-16 h-16 opacity-20">
+                <div className="flex items-center justify-center w-24 h-24 rounded-2xl mb-6 shadow-lg group-hover:shadow-xl overflow-hidden">
                   <OptimizedImage
-                    src="/images/workout2.jpg"
-                    alt="Workout"
-                    width={64}
-                    height={64}
-                    className="rounded-full"
+                    src="/images/workout5.png"
+                    alt="Workout Timer - Interval Training"
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-cover"
                   />
-                </div>
-                
-                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-r from-sport-400 to-sport-500 rounded-2xl mb-6 shadow-lg group-hover:shadow-xl">
-                  <Dumbbell className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-3xl font-bold text-sport-800 mb-3">
                   Workout Timer
@@ -110,19 +128,14 @@ export default function HomePage() {
             {/* Meditation Timer */}
             <Link href="/meditation" className="group">
               <div className="card-calm hover:shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-2 relative overflow-hidden">
-                {/* Background Image */}
-                <div className="absolute top-4 right-4 w-16 h-16 opacity-20">
+                <div className="flex items-center justify-center w-24 h-24 rounded-2xl mb-6 shadow-lg group-hover:shadow-xl overflow-hidden">
                   <OptimizedImage
-                    src="/images/yoga.jpg"
-                    alt="Yoga"
-                    width={64}
-                    height={64}
-                    className="rounded-full"
+                    src="/images/meditation4.png"
+                    alt="Meditation Timer - Mindfulness Practice"
+                    width={96}
+                    height={96}
+                    className="w-full h-full object-cover"
                   />
-                </div>
-                
-                <div className="flex items-center justify-center w-20 h-20 bg-gradient-to-r from-calm-400 to-calm-500 rounded-2xl mb-6 shadow-lg group-hover:shadow-xl">
-                  <Heart className="w-10 h-10 text-white" />
                 </div>
                 <h3 className="text-3xl font-bold text-calm-800 mb-3">
                   Meditation Timer
@@ -140,10 +153,17 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Bottom Banner Ad */}
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <BannerAd className="mt-4" />
-      </div>
+      {/* Footer */}
+      <footer className="mt-16 py-8 border-t border-white/20">
+        <div className="text-center">
+          <p className="text-gray-600 mb-2">
+            © 2025 TikTikTimer. All rights reserved.
+          </p>
+          <p className="text-sm text-gray-500">
+            Professional workout and meditation timer for everyone.
+          </p>
+        </div>
+      </footer>
     </main>
   )
 } 

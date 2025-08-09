@@ -71,4 +71,86 @@
   .gradient-text-calm {
     @apply bg-gradient-to-r from-calm-600 to-sport-600 bg-clip-text text-transparent;
   }
+
+  /* Falling Animation Styles */
+  .falling-particle {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: linear-gradient(45deg, #3b82f6, #10b981);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: falling 8s linear infinite;
+  }
+
+  .falling-particle:nth-child(odd) {
+    background: linear-gradient(45deg, #8b5cf6, #06b6d4);
+    animation-duration: 12s;
+  }
+
+  .falling-particle:nth-child(3n) {
+    background: linear-gradient(45deg, #f59e0b, #ef4444);
+    animation-duration: 10s;
+  }
+
+  .falling-particle:nth-child(4n) {
+    background: linear-gradient(45deg, #10b981, #3b82f6);
+    animation-duration: 15s;
+  }
+
+  .falling-particle:nth-child(5n) {
+    background: linear-gradient(45deg, #06b6d4, #8b5cf6);
+    animation-duration: 11s;
+  }
+
+  @keyframes falling {
+    0% {
+      transform: translateY(-100vh) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    90% {
+      opacity: 0.6;
+    }
+    100% {
+      transform: translateY(100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  .falling-snowflake {
+    position: absolute;
+    color: rgba(59, 130, 246, 0.3);
+    font-size: 12px;
+    animation: falling-snow 6s linear infinite;
+  }
+
+  .falling-snowflake:nth-child(odd) {
+    color: rgba(16, 185, 129, 0.3);
+    animation-duration: 8s;
+  }
+
+  .falling-snowflake:nth-child(3n) {
+    color: rgba(139, 92, 246, 0.3);
+    animation-duration: 10s;
+  }
+
+  @keyframes falling-snow {
+    0% {
+      transform: translateY(-100vh) translateX(0px) rotate(0deg);
+      opacity: 0;
+    }
+    10% {
+      opacity: 0.8;
+    }
+    90% {
+      opacity: 0.4;
+    }
+    100% {
+      transform: translateY(100vh) translateX(20px) rotate(360deg);
+      opacity: 0;
+    }
+  }
 } 

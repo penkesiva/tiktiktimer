@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, Send, Play } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
+import { OptimizedImage } from '@/components/ui/Image'
 
 export default function FeedbackPage() {
   const [formData, setFormData] = useState({
@@ -36,15 +37,20 @@ export default function FeedbackPage() {
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
+          <div className="flex items-center justify-between py-3">
             <Link href="/" className="flex items-center space-x-2 text-gray-600 hover:text-sport-600 transition-colors">
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back</span>
             </Link>
-            <h1 className="text-2xl font-bold gradient-text">TikTikTimer - Feedback</h1>
-            <div className="w-10 h-10 bg-gradient-to-r from-sport-500 to-energy-500 rounded-xl flex items-center justify-center shadow-lg">
-              <Play className="w-6 h-6 text-white" />
-            </div>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">TikTikTimer - Feedback</h1>
+            <OptimizedImage
+              src="/images/logo.png"
+              alt="TikTikTimer Logo"
+              width={40}
+              height={40}
+              className="object-contain"
+              priority
+            />
           </div>
         </div>
       </header>
@@ -61,15 +67,7 @@ export default function FeedbackPage() {
                 Your feedback is highly appreciated and helps us create an amazing experience for everyone.
               </p>
             </div>
-            <p className="text-gray-600 mb-2">
-              Have suggestions, found a bug, or want to share your experience?
-            </p>
-            <p className="text-gray-600 mb-4">
-              We'd love to hear from you!
-            </p>
-            <p className="text-sport-600 font-medium">
-              Visit us at <a href="https://tiktiktimer.com" className="underline hover:text-sport-700">tiktiktimer.com</a>
-            </p>
+
           </div>
 
           {isSubmitted ? (
