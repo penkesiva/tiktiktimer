@@ -71,12 +71,10 @@ export default function WorkoutTimerPage() {
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
     
-    // No need to pause music at start since none is playing yet
-    
     await audioManager.playChimeAndWait('start-chime')
     await audioManager.playWorkoutCueAndWait('start')
     
-    // Start workout music AFTER voice cue finishes (if not muted)
+    // Start music after voice cue finishes
     if (!isWorkoutMusicMuted) {
       audioManager.playWorkoutMusic()
     }
@@ -89,7 +87,7 @@ export default function WorkoutTimerPage() {
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
     
-    // Pause workout music during voice cue
+    // Pause music during voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.pauseWorkoutMusic()
     }
@@ -97,8 +95,7 @@ export default function WorkoutTimerPage() {
     await audioManager.playChimeAndWait('rest-chime')
     await audioManager.playWorkoutCueAndWait('rest')
     
-    // Don't resume music - it should stay paused during rest period
-    // Music will resume when work phase begins again
+    // Music stays paused during rest period
     
     setIsAudioPlaying(false)
   }, [isAudioCuesMuted, isWorkoutMusicMuted])
@@ -108,7 +105,7 @@ export default function WorkoutTimerPage() {
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
     
-    // Pause workout music during voice cue
+    // Pause music during voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.pauseWorkoutMusic()
     }
@@ -120,7 +117,7 @@ export default function WorkoutTimerPage() {
       await audioManager.playWorkoutCueAndWait(`round-${round}`)
     }
     
-    // Resume workout music after voice cue
+    // Resume music after voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.resumeWorkoutMusic()
     }
@@ -128,12 +125,12 @@ export default function WorkoutTimerPage() {
     setIsAudioPlaying(false)
   }, [settings.rounds, isAudioCuesMuted, isWorkoutMusicMuted])
 
-  const playWorkoutCompleteCue = useCallback(async () => {
+  const playWorkoutCue = useCallback(async () => {
     if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
     
-    // Pause workout music during completion voice cue
+    // Pause music during voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.pauseWorkoutMusic()
     }
@@ -141,7 +138,8 @@ export default function WorkoutTimerPage() {
     await audioManager.playChimeAndWait('completion-chime')
     await audioManager.playWorkoutCueAndWait('workout-complete')
     
-    // Don't resume music since workout is complete
+    // No music resume - workout complete
+    
     setIsAudioPlaying(false)
   }, [isAudioCuesMuted, isWorkoutMusicMuted])
 
@@ -151,14 +149,14 @@ export default function WorkoutTimerPage() {
     const randomCue = motivationalCues[Math.floor(Math.random() * motivationalCues.length)]
     const audioManager = getAudioManager()
     
-    // Pause workout music during motivational voice cue
+    // Pause music during voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.pauseWorkoutMusic()
     }
     
     await audioManager.playMotivationalCue(randomCue)
     
-    // Resume workout music after motivational voice cue
+    // Resume music after voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.resumeWorkoutMusic()
     }
@@ -182,7 +180,7 @@ export default function WorkoutTimerPage() {
                 // All rounds completed
                 setPhase('break')
                 setTime(0)
-                playWorkoutCompleteCue()
+                playWorkoutCue()
                 setIsRunning(false)
                 
                 // Stop workout music when workout completes
@@ -211,7 +209,7 @@ export default function WorkoutTimerPage() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
-  }, [isRunning, isPaused, phase, currentRound, settings, isAudioPlaying, playRestCue, playRoundCue, playWorkoutCompleteCue])
+  }, [isRunning, isPaused, phase, currentRound, settings, isAudioPlaying, playRestCue, playRoundCue, playWorkoutCue])
 
   // Motivational cues during workout
   useEffect(() => {
@@ -240,14 +238,12 @@ export default function WorkoutTimerPage() {
     }
   }, [])
 
-  // Monitor workout music mute state and handle music accordingly
+  // Monitor workout music mute state
   useEffect(() => {
     const audioManager = getAudioManager()
     if (isWorkoutMusicMuted) {
-      // If muted, stop any playing workout music
       audioManager.stopWorkoutMusic()
     } else if (isRunning && !isPaused && phase === 'work') {
-      // If unmuted and timer is running in work phase, start workout music
       audioManager.playWorkoutMusic()
     }
   }, [isWorkoutMusicMuted, isRunning, isPaused, phase])
@@ -260,21 +256,18 @@ export default function WorkoutTimerPage() {
       setIsRunning(true)
       setIsPaused(false)
       
-      // Play start cue (this function already handles music start after cue)
       await playStartCue()
     }
   }, [isRunning, settings.workDuration, playStartCue])
 
   const pauseTimer = () => {
     setIsPaused(true)
-    // Pause workout music
     const audioManager = getAudioManager()
     audioManager.pauseWorkoutMusic()
   }
 
   const resumeTimer = () => {
     setIsPaused(false)
-    // Resume workout music if not muted and we're in work phase
     if (!isWorkoutMusicMuted && phase === 'work') {
       const audioManager = getAudioManager()
       audioManager.resumeWorkoutMusic()
@@ -289,7 +282,6 @@ export default function WorkoutTimerPage() {
     setTime(settings.workDuration)
     setShowResetConfirm(false)
     
-    // Stop workout music
     const audioManager = getAudioManager()
     audioManager.stopWorkoutMusic()
   }

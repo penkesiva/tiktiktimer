@@ -69,26 +69,32 @@ To provide the most intuitive and distraction-free timer experience for fitness 
 - **Effort**: 3 Story Points
 
 #### Feature 2: Workout Timer
-- **Description**: Comprehensive workout timer with interval training capabilities, ready-made workout types, and customizable settings
-- **User Story**: As a fitness enthusiast, I want to set up interval workouts with customizable work/rest periods and audio cues so that I can focus on my workout without worrying about timing
+- **Description**: Comprehensive workout timer with interval training capabilities, ready-made workout types, customizable settings, and intelligent audio management
+- **User Story**: As a fitness enthusiast, I want to set up interval workouts with customizable work/rest periods, audio cues, and background music so that I can focus on my workout without worrying about timing
 - **Acceptance Criteria**:
-  - Ready-made workout types (Yoga, HIIT, Stretching)
-  - Quick-start mode for interval workouts with customizable work/rest durations and rounds
+  - Ready-made workout presets (Tabata, HIIT, Yoga, Stretching, etc.)
+  - Custom preset with user-defined work/rest durations and rounds
   - Audio cues: "Start", "Rest", "Round X", "Final Round", "Workout complete"
   - Ding/chime sound 1 second before voice cues
   - Optional motivational voice cues
+  - Background workout music that plays only during work phases
+  - Dual mute controls: separate controls for music and voice cues
+  - Smart audio: music pauses during rest, resumes during work
+  - Sequential playback: voice cues complete before music starts
 - **Priority**: High
 - **Effort**: 8 Story Points
 
 #### Feature 3: Meditation Timer
-- **Description**: Meditation timer with multiple modes (silent, guided, ambient sound) and duration options
-- **User Story**: As a meditation practitioner, I want different meditation modes with appropriate audio guidance so that I can choose the right experience for my practice
+- **Description**: Meditation timer with multiple modes (silent, guided, ambient sound), duration options, and dual audio controls
+- **User Story**: As a meditation practitioner, I want different meditation modes with appropriate audio guidance and independent control over music and voice so that I can customize my meditation experience
 - **Acceptance Criteria**:
   - One-click switch from workout to meditation tab
   - Duration options: 5, 10, 15, 20, 30 minutes
   - Three modes: Silent, Guided, Ambient Sound
   - Guided voice prompts every ~2 minutes
   - Chime sounds for start, optional midway, and end
+  - Dual mute controls: separate controls for ambient music and voice guidance
+  - Independent audio management for different meditation components
 - **Priority**: High
 - **Effort**: 6 Story Points
 

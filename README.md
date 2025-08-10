@@ -7,6 +7,9 @@ A clean, minimalist SaaS application for workout and meditation timing with cust
 - **Workout Timer**: Interval training with customizable work/rest periods
 - **Meditation Timer**: Multiple modes (silent, guided, ambient sound)
 - **Audio Cues**: Professional voice prompts and chime sounds
+- **Workout Music**: Background music that plays during work phases
+- **Dual Mute Controls**: Separate controls for music and voice guidance
+- **Smart Audio**: Music automatically pauses during rest periods
 - **PWA Support**: Installable as a mobile app
 - **Clean Design**: Minimalist interface inspired by CrossHero Timer
 
