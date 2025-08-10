@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Play } from 'lucide-react'
 import { BannerAd } from '@/components/ads/GoogleAdsense'
 import { OptimizedImage } from '@/components/ui/Image'
+import Head from 'next/head'
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false)
@@ -15,7 +16,68 @@ export default function HomePage() {
   }, [])
 
   return (
-    <main className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+    <>
+      <Head>
+        {/* Enhanced SEO Meta Tags */}
+        <title>TikTikTimer - Free Workout & Meditation Timer App | Interval Training & Guided Sessions</title>
+        <meta name="description" content="Free professional timer app for workouts and meditation. Features interval training, HIIT, Tabata, guided meditation, ambient sounds, and audio cues. Perfect for fitness and mindfulness." />
+        <meta name="keywords" content="free timer app, workout timer, meditation timer, interval training, HIIT timer, Tabata timer, fitness app, meditation app, guided meditation, ambient sounds, audio cues, exercise timer, mindfulness app" />
+        
+        {/* Open Graph Enhanced */}
+        <meta property="og:title" content="TikTikTimer - Free Professional Timer App for Workouts & Meditation" />
+        <meta property="og:description" content="Free interval training timer with guided meditation. Features Tabata, HIIT, strength training, and mindfulness sessions with professional audio guidance." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://tiktiktimer.com" />
+        <meta property="og:image" content="https://tiktiktimer.com/images/tiktiktimer.png" />
+        <meta property="og:image:width" content="512" />
+        <meta property="og:image:height" content="512" />
+        <meta property="og:site_name" content="TikTikTimer" />
+        
+        {/* Twitter Enhanced */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="TikTikTimer - Free Workout & Meditation Timer" />
+        <meta name="twitter:description" content="Professional interval training and guided meditation timer app. Free to use with Tabata, HIIT, and mindfulness features." />
+        <meta name="twitter:image" content="https://tiktiktimer.com/images/tiktiktimer.png" />
+        
+        {/* Additional SEO */}
+        <meta name="author" content="TikTikTimer" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+        <meta name="googlebot" content="index, follow" />
+        
+        {/* Structured Data for Rich Snippets */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebApplication",
+              "name": "TikTikTimer",
+              "description": "Free professional timer app for workouts and meditation with interval training and guided sessions",
+              "url": "https://tiktiktimer.com",
+              "applicationCategory": "HealthApplication",
+              "operatingSystem": "Web Browser",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              },
+              "featureList": [
+                "Interval Training Timer",
+                "Workout Presets (Tabata, HIIT, Strength, Cardio)",
+                "Guided Meditation Timer",
+                "Ambient Sounds & Music",
+                "Audio Cues & Chimes",
+                "Mobile Responsive Design",
+                "PWA Installation"
+              ],
+              "screenshot": "https://tiktiktimer.com/images/workout1.png",
+              "softwareVersion": "1.0.0"
+            })
+          }}
+        />
+      </Head>
+      
+      <main className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       {/* Falling Animation Background */}
       {isClient && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -177,5 +239,6 @@ export default function HomePage() {
         </div>
       </footer>
     </main>
+    </>
   )
 } 

@@ -8,6 +8,7 @@ import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { getAudioManager, playMeditationCue } from '@/lib/audio'
 import { MeditationTopAd, MeditationBottomAd } from '@/components/ads/GoogleAdsense'
 import { OptimizedImage } from '@/components/ui/Image'
+import Head from 'next/head'
 
 interface MeditationSettings {
   duration: number
@@ -421,7 +422,66 @@ export default function MeditationTimerPage() {
   }, [isRunning])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100 relative overflow-hidden">
+    <>
+      <Head>
+        {/* Enhanced SEO Meta Tags */}
+        <title>Meditation Timer - Free Guided & Silent Sessions | Mindfulness App | TikTikTimer</title>
+        <meta name="description" content="Free meditation timer app with guided sessions, silent meditation, ambient sounds, and professional voice prompts. Perfect for mindfulness, stress relief, and mental wellness." />
+        <meta name="keywords" content="meditation timer, guided meditation, silent meditation, mindfulness app, meditation app, ambient sounds, guided sessions, stress relief, mental wellness, zen meditation, breathing exercises" />
+        
+        {/* Open Graph Enhanced */}
+        <meta property="og:title" content="Free Meditation Timer - Guided & Silent Sessions | TikTikTimer" />
+        <meta property="og:description" content="Professional meditation timer with guided sessions, ambient sounds, and voice prompts. Free mindfulness app for stress relief and mental wellness." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://tiktiktimer.com/meditation" />
+        <meta property="og:image" content="https://tiktiktimer.com/images/meditation.png" />
+        <meta property="og:image:width" content="750" />
+        <meta property="og:image:height" content="1334" />
+        
+        {/* Twitter Enhanced */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Free Meditation Timer - Guided & Silent Sessions" />
+        <meta name="twitter:description" content="Professional meditation timer with guided sessions and ambient sounds. Free mindfulness app for stress relief." />
+        <meta name="twitter:image" content="https://tiktiktimer.com/images/meditation.png" />
+        
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <link rel="canonical" href="https://tiktiktimer.com/meditation" />
+        
+        {/* Structured Data for Meditation Timer */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "TikTikTimer Meditation Timer",
+              "description": "Free meditation timer app with guided sessions, silent meditation, and ambient sounds",
+              "applicationCategory": "HealthApplication",
+              "operatingSystem": "Web Browser",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              },
+              "featureList": [
+                "Guided Meditation Sessions",
+                "Silent Meditation Timer",
+                "Ambient Sound Modes (Rain, Ocean, Spa, Nature, Zen, Calm)",
+                "Professional Voice Prompts",
+                "Customizable Duration (1-30 minutes)",
+                "Quick Calm (5 min), Mindful Break (10 min)",
+                "Nature Connection, Zen Moment, Deep Relaxation",
+                "Ocean Peace, Forest Serenity, Inner Calm",
+                "Nature Escape, Zen Mastery, Zen Session",
+                "Wilderness Journey, Ultimate Zen, Deep Calm"
+              ]
+            })
+          }}
+        />
+      </Head>
+      
+      <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100 relative overflow-hidden">
       {/* Falling Animation Background */}
       {isClient && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -785,7 +845,8 @@ export default function MeditationTimerPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 }
 

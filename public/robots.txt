@@ -1,0 +1,18 @@
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://tiktiktimer.com/sitemap.xml
+
+# Allow crawling of all pages
+Allow: /workout
+Allow: /meditation
+Allow: /feedback
+
+# Allow crawling of assets
+Allow: /images/
+Allow: /audio/
+Allow: /manifest.json
+
+# Crawl delay (optional)
+Crawl-delay: 1

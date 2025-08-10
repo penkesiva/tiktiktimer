@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { getAudioManager, playWorkoutCue, playChime, playMotivationalCue } from '@/lib/audio'
 import { WorkoutTopAd, WorkoutBottomAd } from '@/components/ads/GoogleAdsense'
 import { OptimizedImage } from '@/components/ui/Image'
+import Head from 'next/head'
 
 interface WorkoutSettings {
   workDuration: number
@@ -334,7 +335,66 @@ export default function WorkoutTimerPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sport-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+    <>
+      <Head>
+        {/* Enhanced SEO Meta Tags */}
+        <title>Workout Timer - Free Interval Training App | Tabata, HIIT, Strength | TikTikTimer</title>
+        <meta name="description" content="Free workout timer app with interval training, Tabata, HIIT, strength training, and cardio workouts. Professional audio cues, motivational prompts, and customizable intervals." />
+        <meta name="keywords" content="workout timer, interval training, Tabata timer, HIIT timer, strength training, cardio workout, fitness timer, exercise timer, workout app, interval app, Tabata app, HIIT app" />
+        
+        {/* Open Graph Enhanced */}
+        <meta property="og:title" content="Free Workout Timer - Interval Training, Tabata, HIIT | TikTikTimer" />
+        <meta property="og:description" content="Professional workout timer with interval training, Tabata, HIIT, strength, and cardio workouts. Free to use with audio cues and motivational prompts." />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://tiktiktimer.com/workout" />
+        <meta property="og:image" content="https://tiktiktimer.com/images/workout1.png" />
+        <meta property="og:image:width" content="1280" />
+        <meta property="og:image:height" content="720" />
+        
+        {/* Twitter Enhanced */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Free Workout Timer - Interval Training & Tabata" />
+        <meta name="twitter:description" content="Professional interval training timer with Tabata, HIIT, strength, and cardio workouts. Free to use with audio guidance." />
+        <meta name="twitter:image" content="https://tiktiktimer.com/images/workout1.png" />
+        
+        {/* Additional SEO */}
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <link rel="canonical" href="https://tiktiktimer.com/workout" />
+        
+        {/* Structured Data for Workout Timer */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "SoftwareApplication",
+              "name": "TikTikTimer Workout Timer",
+              "description": "Free interval training workout timer with Tabata, HIIT, strength, and cardio workouts",
+              "applicationCategory": "HealthApplication",
+              "operatingSystem": "Web Browser",
+              "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+              },
+              "featureList": [
+                "Tabata Timer (20s work, 10s rest, 8 rounds)",
+                "HIIT Timer (30s work, 15s rest, 6 rounds)",
+                "Strength Timer (45s work, 20s rest, 5 rounds)",
+                "Cardio Timer (60s work, 30s rest, 4 rounds)",
+                "Quick Burn (15s work, 10s rest, 10 rounds)",
+                "Endurance (90s work, 30s rest, 3 rounds)",
+                "Custom Interval Settings",
+                "Professional Audio Cues",
+                "Motivational Prompts",
+                "Background Workout Music"
+              ]
+            })
+          }}
+        />
+      </Head>
+      
+      <div className="min-h-screen bg-gradient-to-br from-sport-50 via-sport-100 to-sport-200">
       {/* Strategic Background Images - Fewer, Bigger, Better Positioned */}
       <div className="absolute top-20 right-4 w-56 h-56">
         <OptimizedImage
@@ -836,6 +896,7 @@ export default function WorkoutTimerPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </>
   )
 } 
