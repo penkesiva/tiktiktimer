@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX } from 'lucide-react'
+import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX, Mic, MicOff, User } from 'lucide-react'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -18,76 +18,151 @@ interface WorkoutSettings {
   currentPreset?: string
 }
 
-const PRESET_WORKOUTS = [
+const STATIC_PRESETS = [
   { name: 'Tabata', work: 20, rest: 10, rounds: 8 },
-  { name: 'Yoga', work: 45, rest: 15, rounds: 6 },
-  { name: 'Stretch', work: 30, rest: 10, rounds: 8 },
+  { name: 'HIIT', work: 30, rest: 15, rounds: 6 },
+  { name: 'Strength', work: 45, rest: 20, rounds: 5 },
+  { name: 'Cardio', work: 60, rest: 30, rounds: 4 },
+  { name: 'Quick Burn', work: 15, rest: 10, rounds: 10 },
+  { name: 'Endurance', work: 90, rest: 30, rounds: 3 },
 ]
 
 export default function WorkoutTimerPage() {
   const [settings, setSettings] = useState<WorkoutSettings>({
-    workDuration: 60,
-    restDuration: 20,
-    rounds: 4,
-    workoutType: 'custom',
-    currentPreset: 'Custom'
+    workDuration: 20,
+    restDuration: 10,
+    rounds: 8,
+    workoutType: 'preset',
+    currentPreset: 'Tabata'
   })
+
+  // Get all presets including dynamic custom preset
+  const getAllPresets = useCallback(() => {
+    const customPreset = {
+      name: 'Custom',
+      work: settings.workDuration,
+      rest: settings.restDuration,
+      rounds: settings.rounds,
+      isCustom: true
+    }
+    // Put Custom preset at the end with distinct styling
+    return [...STATIC_PRESETS, customPreset]
+  }, [settings.workDuration, settings.restDuration, settings.rounds])
   
-  const [time, setTime] = useState(settings.workDuration)
+  const [time, setTime] = useState(20)
   const [isRunning, setIsRunning] = useState(false)
   const [isPaused, setIsPaused] = useState(false)
   const [currentRound, setCurrentRound] = useState(1)
   const [phase, setPhase] = useState<'work' | 'rest' | 'break'>('work')
 
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
-  const [showCustomTimer, setShowCustomTimer] = useState(false)
   const [showResetConfirm, setShowResetConfirm] = useState(false)
-  const [isMuted, setIsMuted] = useState(false)
+  const [isAudioCuesMuted, setIsAudioCuesMuted] = useState(false)
+  const [isWorkoutMusicMuted, setIsWorkoutMusicMuted] = useState(false)
+
+  const [isEditingCustom, setIsEditingCustom] = useState(false)
+  const [showSettingsChangeConfirm, setShowSettingsChangeConfirm] = useState(false)
+  const [pendingPreset, setPendingPreset] = useState<any>(null)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Audio functions
   const playStartCue = useCallback(async () => {
+    if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
+    
+    // No need to pause music at start since none is playing yet
+    
     await audioManager.playChimeAndWait('start-chime')
     await audioManager.playWorkoutCueAndWait('start')
+    
+    // Start workout music AFTER voice cue finishes (if not muted)
+    if (!isWorkoutMusicMuted) {
+      audioManager.playWorkoutMusic()
+    }
+    
     setIsAudioPlaying(false)
-  }, [])
+  }, [isAudioCuesMuted, isWorkoutMusicMuted])
 
   const playRestCue = useCallback(async () => {
+    if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
+    
+    // Pause workout music during voice cue
+    if (!isWorkoutMusicMuted) {
+      audioManager.pauseWorkoutMusic()
+    }
+    
     await audioManager.playChimeAndWait('rest-chime')
     await audioManager.playWorkoutCueAndWait('rest')
+    
+    // Don't resume music - it should stay paused during rest period
+    // Music will resume when work phase begins again
+    
     setIsAudioPlaying(false)
-  }, [])
+  }, [isAudioCuesMuted, isWorkoutMusicMuted])
 
   const playRoundCue = useCallback(async (round: number) => {
+    if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
+    
+    // Pause workout music during voice cue
+    if (!isWorkoutMusicMuted) {
+      audioManager.pauseWorkoutMusic()
+    }
+    
     await audioManager.playChimeAndWait('round-chime')
     if (round === settings.rounds) {
       await audioManager.playWorkoutCueAndWait('final-round')
     } else {
       await audioManager.playWorkoutCueAndWait(`round-${round}`)
     }
+    
+    // Resume workout music after voice cue
+    if (!isWorkoutMusicMuted) {
+      audioManager.resumeWorkoutMusic()
+    }
+    
     setIsAudioPlaying(false)
-  }, [settings.rounds])
+  }, [settings.rounds, isAudioCuesMuted, isWorkoutMusicMuted])
 
   const playWorkoutCompleteCue = useCallback(async () => {
+    if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
+    
+    // Pause workout music during completion voice cue
+    if (!isWorkoutMusicMuted) {
+      audioManager.pauseWorkoutMusic()
+    }
+    
     await audioManager.playChimeAndWait('completion-chime')
     await audioManager.playWorkoutCueAndWait('workout-complete')
+    
+    // Don't resume music since workout is complete
     setIsAudioPlaying(false)
-  }, [])
+  }, [isAudioCuesMuted, isWorkoutMusicMuted])
 
   const playMotivationalCue = useCallback(async () => {
+    if (isAudioCuesMuted) return
     const motivationalCues = ['youve-got-this', 'halfway-there', 'keep-going', 'almost-there', 'great-work', 'stay-strong']
     const randomCue = motivationalCues[Math.floor(Math.random() * motivationalCues.length)]
     const audioManager = getAudioManager()
+    
+    // Pause workout music during motivational voice cue
+    if (!isWorkoutMusicMuted) {
+      audioManager.pauseWorkoutMusic()
+    }
+    
     await audioManager.playMotivationalCue(randomCue)
-  }, [])
+    
+    // Resume workout music after motivational voice cue
+    if (!isWorkoutMusicMuted) {
+      audioManager.resumeWorkoutMusic()
+    }
+  }, [isAudioCuesMuted, isWorkoutMusicMuted])
 
   // Timer logic
   useEffect(() => {
@@ -102,13 +177,17 @@ export default function WorkoutTimerPage() {
                 // More rounds to go - start rest period
                 setPhase('rest')
                 setTime(settings.restDuration)
-                playRestCue()
+                playRestCue() // This function already handles pausing music
               } else {
                 // All rounds completed
                 setPhase('break')
                 setTime(0)
                 playWorkoutCompleteCue()
                 setIsRunning(false)
+                
+                // Stop workout music when workout completes
+                const audioManager = getAudioManager()
+                audioManager.stopWorkoutMusic()
               }
             } else if (phase === 'rest') {
               // Rest phase finished - start next round
@@ -117,6 +196,8 @@ export default function WorkoutTimerPage() {
                 setCurrentRound(nextRound)
                 setPhase('work')
                 setTime(settings.workDuration)
+                
+                // Play round cue (this function already handles music pause/resume)
                 playRoundCue(nextRound)
               }
             }
@@ -145,6 +226,8 @@ export default function WorkoutTimerPage() {
     }
   }, [isRunning, phase, isAudioPlaying, playMotivationalCue])
 
+
+
   // Cleanup on unmount
   useEffect(() => {
     return () => {
@@ -157,6 +240,18 @@ export default function WorkoutTimerPage() {
     }
   }, [])
 
+  // Monitor workout music mute state and handle music accordingly
+  useEffect(() => {
+    const audioManager = getAudioManager()
+    if (isWorkoutMusicMuted) {
+      // If muted, stop any playing workout music
+      audioManager.stopWorkoutMusic()
+    } else if (isRunning && !isPaused && phase === 'work') {
+      // If unmuted and timer is running in work phase, start workout music
+      audioManager.playWorkoutMusic()
+    }
+  }, [isWorkoutMusicMuted, isRunning, isPaused, phase])
+
   const startTimer = useCallback(async () => {
     if (!isRunning) {
       setCurrentRound(1)
@@ -164,16 +259,26 @@ export default function WorkoutTimerPage() {
       setTime(settings.workDuration)
       setIsRunning(true)
       setIsPaused(false)
+      
+      // Play start cue (this function already handles music start after cue)
       await playStartCue()
     }
   }, [isRunning, settings.workDuration, playStartCue])
 
   const pauseTimer = () => {
     setIsPaused(true)
+    // Pause workout music
+    const audioManager = getAudioManager()
+    audioManager.pauseWorkoutMusic()
   }
 
   const resumeTimer = () => {
     setIsPaused(false)
+    // Resume workout music if not muted and we're in work phase
+    if (!isWorkoutMusicMuted && phase === 'work') {
+      const audioManager = getAudioManager()
+      audioManager.resumeWorkoutMusic()
+    }
   }
 
   const resetTimer = () => {
@@ -183,41 +288,58 @@ export default function WorkoutTimerPage() {
     setPhase('work')
     setTime(settings.workDuration)
     setShowResetConfirm(false)
+    
+    // Stop workout music
+    const audioManager = getAudioManager()
+    audioManager.stopWorkoutMusic()
   }
 
   const confirmReset = () => {
     setShowResetConfirm(true)
   }
 
-  const toggleMute = () => {
-    setIsMuted(!isMuted)
-    const audioManager = getAudioManager()
-    audioManager.setVolume(isMuted ? 0.7 : 0)
+
+
+  const toggleAudioCuesMute = () => {
+    setIsAudioCuesMuted(!isAudioCuesMuted)
   }
 
-  const applyPreset = useCallback((preset: typeof PRESET_WORKOUTS[0]) => {
+  const toggleWorkoutMusicMute = () => {
+    const newMutedState = !isWorkoutMusicMuted
+    setIsWorkoutMusicMuted(newMutedState)
+    
+    const audioManager = getAudioManager()
+    if (newMutedState) {
+      // If muting, stop the workout music
+      audioManager.stopWorkoutMusic()
+    } else if (isRunning && !isPaused && phase === 'work') {
+      // If unmuting and timer is running in work phase, start the workout music
+      audioManager.playWorkoutMusic()
+    }
+  }
+
+  const applyPreset = useCallback((preset: any) => {
+    // If session is running, show confirmation first
+    if (isRunning || isPaused) {
+      setPendingPreset(preset)
+      setShowSettingsChangeConfirm(true)
+      return
+    }
+
+    // Otherwise apply immediately
     setSettings({
       workDuration: preset.work,
       restDuration: preset.rest,
       rounds: preset.rounds,
-      workoutType: 'preset',
+      workoutType: preset.isCustom ? 'custom' : 'preset',
       currentPreset: preset.name
     })
     setTime(preset.work)
     setCurrentRound(1)
     setPhase('work')
-  }, [])
+  }, [isRunning, isPaused])
 
-  const applyCustomTimer = useCallback(() => {
-    setSettings(prev => ({
-      ...prev,
-      workoutType: 'custom',
-      currentPreset: 'Custom'
-    }))
-    setTime(settings.workDuration)
-    setCurrentRound(1)
-    setPhase('work')
-  }, [settings.workDuration])
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-sport-50 via-blue-50 to-indigo-100 relative overflow-hidden">
@@ -256,146 +378,153 @@ export default function WorkoutTimerPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Top Ad */}
-        <div className="mb-6">
+        <div className="mb-4">
           <WorkoutTopAd />
         </div>
 
-        {/* Always Visible Workout Presets */}
-        <div className="card-sport mb-8 relative overflow-hidden">
-          <h3 className="text-lg md:text-xl font-bold text-sport-800 mb-4 md:mb-6">Quick Presets</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
-            {PRESET_WORKOUTS.map((preset) => (
+        {/* Workout Presets */}
+        <div className="card-sport mb-6 relative overflow-hidden">
+          <h3 className="text-lg md:text-xl font-bold text-sport-800 mb-3 md:mb-4">Quick Presets</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3">
+            {/* Show first 4 presets (first row) */}
+            {getAllPresets().slice(0, 4).map((preset: any) => (
               <button
                 key={preset.name}
-                onClick={() => applyPreset(preset)}
+                onClick={() => {
+                  if (preset.isCustom) {
+                    setIsEditingCustom(true)
+                  } else {
+                    applyPreset(preset)
+                  }
+                }}
                 className={cn(
-                  "p-3 md:p-4 border rounded-2xl hover:shadow-lg hover:-translate-y-1 active:scale-95 transition-all duration-300 text-left relative min-h-[80px] md:min-h-[100px]",
-                  settings.currentPreset === preset.name
-                    ? "bg-gradient-to-br from-sport-300 to-sport-400 border-sport-400 shadow-lg"
-                    : "bg-gradient-to-br from-sport-100 to-sport-200 border-sport-200"
+                  "p-2 md:p-3 border rounded-xl hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all duration-300 text-left relative min-h-[70px] md:min-h-[80px]",
+                  preset.isCustom
+                    ? "bg-gradient-to-br from-purple-100 to-purple-200 border-purple-300 hover:border-purple-400"
+                    : settings.currentPreset === preset.name
+                    ? "bg-gradient-to-br from-sport-300 to-sport-400 border-sport-400 shadow-md"
+                    : "bg-gradient-to-br from-sport-100 to-sport-200 border-sport-200 hover:border-sport-300"
                 )}
               >
-                <div className="absolute top-2 right-2 md:top-3 md:right-3 text-sm md:text-base font-semibold text-sport-600 bg-white/90 px-3 py-2 rounded-lg shadow-sm">
-                  {preset.work}s / {preset.rest}s
-                </div>
-                <div className="font-bold text-sport-800 text-sm md:text-base">{preset.name}</div>
                 <div className={cn(
-                  "text-sm md:text-base mt-1 font-medium",
-                  settings.currentPreset === preset.name ? "text-sport-100" : "text-sport-500"
+                  "absolute top-1 right-1 md:top-2 md:right-2 text-xs font-medium px-1.5 py-0.5 rounded-md",
+                  preset.isCustom 
+                    ? "text-purple-700 bg-purple-50/90" 
+                    : "text-sport-600 bg-white/80"
+                )}>
+                  {preset.work}s/{preset.rest}s
+                </div>
+                <div className={cn(
+                  "font-bold text-xs md:text-sm",
+                  preset.isCustom 
+                    ? "text-purple-800" 
+                    : settings.currentPreset === preset.name 
+                    ? "text-sport-900" 
+                    : "text-sport-800"
+                )}>
+                  {preset.name}
+                </div>
+                <div className={cn(
+                  "text-xs mt-0.5 font-medium",
+                  preset.isCustom ? "text-purple-600" : "text-sport-500"
                 )}>
                   {preset.rounds} rounds
                 </div>
               </button>
             ))}
           </div>
-        </div>
 
-                {/* Custom Timer Panel */}
-        <div 
-          className={cn(
-            "card-sport mb-8 relative overflow-hidden transition-all duration-300",
-            {
-              "cursor-pointer hover:shadow-lg": !showCustomTimer
-            }
-          )}
-          onClick={() => !showCustomTimer && setShowCustomTimer(true)}
-        >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg md:text-xl font-bold text-sport-800">Custom Timer</h3>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                setShowCustomTimer(!showCustomTimer)
-              }}
-              className="text-sport-600 hover:text-sport-700 transition-colors"
-            >
-              {showCustomTimer ? 'Hide' : 'Show'}
-            </button>
+          {/* Second row with remaining presets including Custom */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-3 mt-3">
+            {getAllPresets().slice(4).map((preset: any) => (
+              <button
+                key={preset.name}
+                onClick={() => {
+                  if (preset.isCustom) {
+                    setIsEditingCustom(true)
+                  } else {
+                    applyPreset(preset)
+                  }
+                }}
+                className={cn(
+                  "p-2 md:p-3 border rounded-xl hover:shadow-md hover:-translate-y-0.5 active:scale-95 transition-all duration-300 text-left relative min-h-[70px] md:min-h-[80px]",
+                  preset.isCustom
+                    ? "bg-gradient-to-br from-purple-100 to-purple-200 border-purple-300 hover:border-purple-400"
+                    : settings.currentPreset === preset.name
+                    ? "bg-gradient-to-br from-sport-300 to-sport-400 border-sport-400 shadow-md"
+                    : "bg-gradient-to-br from-sport-100 to-sport-200 border-sport-200 hover:border-sport-300"
+                )}
+              >
+                <div className={cn(
+                  "absolute top-1 right-1 md:top-2 md:right-2 text-xs font-medium px-1.5 py-0.5 rounded-md",
+                  preset.isCustom 
+                    ? "text-purple-700 bg-purple-50/90" 
+                    : "text-sport-600 bg-white/80"
+                )}>
+                  {preset.work}s/{preset.rest}s
+                </div>
+                <div className={cn(
+                  "font-bold text-xs md:text-sm",
+                  preset.isCustom 
+                    ? "text-purple-800" 
+                    : settings.currentPreset === preset.name 
+                    ? "text-sport-900" 
+                    : "text-sport-800"
+                )}>
+                  {preset.name}
+                </div>
+                <div className={cn(
+                  "text-xs mt-0.5 font-medium",
+                  preset.isCustom ? "text-purple-600" : "text-sport-500"
+                )}>
+                  {preset.rounds} rounds
+                </div>
+              </button>
+            ))}
           </div>
-          
-                    {showCustomTimer && (
-            <div>
-              <div className="flex flex-col sm:flex-row flex-wrap gap-4 md:gap-6 justify-center">
-                <div className="flex flex-col items-center">
-                                  <label className="block text-sm font-medium text-sport-700 mb-2">
-                  Work (secs)
-                </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="3600"
-                    value={settings.workDuration}
-                    onChange={(e) => setSettings(prev => ({ ...prev, workDuration: parseInt(e.target.value) || 1 }))}
-                    className="w-20 md:w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base md:text-lg font-medium text-center"
-                  />
-                </div>
-                
-                <div className="flex flex-col items-center">
-                                  <label className="block text-sm font-medium text-sport-700 mb-2">
-                  Rest (secs)
-                </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="3600"
-                    value={settings.restDuration}
-                    onChange={(e) => setSettings(prev => ({ ...prev, restDuration: parseInt(e.target.value) || 1 }))}
-                    className="w-20 md:w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base md:text-lg font-medium text-center"
-                  />
-                </div>
-                
-                <div className="flex flex-col items-center">
-                  <label className="block text-sm font-medium text-sport-700 mb-2">
-                    Rounds
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="100"
-                    value={settings.rounds}
-                    onChange={(e) => setSettings(prev => ({ ...prev, rounds: parseInt(e.target.value) || 1 }))}
-                    className="w-20 md:w-24 p-2 border border-sport-200 rounded-xl bg-white/80 backdrop-blur-sm focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base md:text-lg font-medium text-center"
-                  />
-                </div>
-              </div>
-              
-              <div className="w-full flex justify-center mt-4 md:mt-6">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    applyCustomTimer()
-                  }}
-                  className="bg-gradient-to-r from-sport-500 to-sport-600 hover:from-sport-600 hover:to-sport-700 text-white p-3 md:p-4 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sport-500 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
-                  title="Apply Custom Timer"
-                >
-                  <Play className="w-5 h-5 md:w-6 md:h-6" />
-                </button>
-              </div>
-            </div>
-          )}
+
+
         </div>
 
         {/* Timer Display */}
         <div className="card-sport relative overflow-hidden">
-          {/* Volume Controls - Top Right */}
-          <div className="absolute top-4 right-4 z-10">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={toggleMute}
-              title={isMuted ? "Unmute" : "Mute"}
-              className="text-sport-600 hover:text-sport-700 hover:bg-sport-50/80 backdrop-blur-sm"
+          {/* Dual Mute Controls - Top Right */}
+          <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2">
+            {/* Workout Music Mute */}
+            <button
+              onClick={toggleWorkoutMusicMute}
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 backdrop-blur-sm",
+                isWorkoutMusicMuted 
+                  ? "text-red-500 hover:text-red-600 hover:bg-red-50/80 bg-red-50/50" 
+                  : "text-sport-600 hover:text-sport-700 hover:bg-sport-50/80 bg-sport-50/50"
+              )}
+              title={isWorkoutMusicMuted ? "Unmute Workout Music" : "Mute Workout Music"}
             >
-              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-            </Button>
+              {isWorkoutMusicMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+
+                               {/* Audio Cues Mute */}
+                   <button
+                     onClick={toggleAudioCuesMute}
+                     className={cn(
+                       "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 backdrop-blur-sm",
+                       isAudioCuesMuted 
+                         ? "text-red-500 hover:text-red-600 hover:bg-red-50/80 bg-red-50/50" 
+                         : "text-sport-600 hover:text-sport-700 hover:bg-sport-50/80 bg-sport-50/50"
+                     )}
+                     title={isAudioCuesMuted ? "Unmute Voice Cues" : "Mute Voice Cues"}
+                   >
+                     {isAudioCuesMuted ? <User className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                   </button>
           </div>
 
           {/* Filling Animation Background */}
           {isRunning && (
             <div 
-              className="absolute inset-0 bg-gradient-to-r from-sport-200/30 to-sport-300/30 transition-all duration-1000 ease-out"
+              className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sport-200/30 to-sport-300/30 transition-all duration-1000 ease-out"
               style={{
                 width: `${Math.min(100, ((currentRound - 1) / settings.rounds) * 100 + (phase === 'work' ? ((settings.workDuration - time) / settings.workDuration) * (1 / settings.rounds) * 100 : (phase === 'rest' ? ((currentRound - 1) / settings.rounds) * 100 : 0)))}%`
               }}
@@ -422,7 +551,10 @@ export default function WorkoutTimerPage() {
             phase={phase}
             isAudioPlaying={isAudioPlaying}
             className="mb-8"
+            showAudioIndicator={false}
           />
+
+
 
           {/* Controls */}
           <div className="flex items-center justify-center space-x-3 md:space-x-4">
@@ -502,6 +634,207 @@ export default function WorkoutTimerPage() {
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
                 >
                   Reset
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Timer Editing Modal */}
+      {isEditingCustom && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-5">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-sport-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Settings className="w-6 h-6 text-sport-600" />
+              </div>
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Custom Workout</h3>
+              
+              <div className="space-y-3 mb-4">
+                <div className="flex flex-col">
+                  <label className="block text-xs font-medium text-sport-700 mb-1">
+                    Work Duration (seconds)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="3600"
+                    value={settings.workDuration}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '') {
+                        // Allow empty input temporarily
+                        setSettings(prev => ({ ...prev, workDuration: 0 }))
+                      } else {
+                        const numValue = parseInt(value)
+                        if (!isNaN(numValue) && numValue >= 1) {
+                          setSettings(prev => ({ ...prev, workDuration: numValue }))
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // When input loses focus, ensure minimum value
+                      if (settings.workDuration < 1) {
+                        setSettings(prev => ({ ...prev, workDuration: 1 }))
+                      }
+                    }}
+                    className="w-full p-2 border border-sport-200 rounded-lg bg-white focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base font-medium text-center"
+                  />
+                </div>
+                
+                <div className="flex flex-col">
+                  <label className="block text-xs font-medium text-sport-700 mb-1">
+                    Rest Duration (seconds)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="3600"
+                    value={settings.restDuration}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '') {
+                        // Allow empty input temporarily
+                        setSettings(prev => ({ ...prev, restDuration: 0 }))
+                      } else {
+                        const numValue = parseInt(value)
+                        if (!isNaN(numValue) && numValue >= 1) {
+                          setSettings(prev => ({ ...prev, restDuration: numValue }))
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // When input loses focus, ensure minimum value
+                      if (settings.restDuration < 1) {
+                        setSettings(prev => ({ ...prev, restDuration: 1 }))
+                      }
+                    }}
+                    className="w-full p-2 border border-sport-200 rounded-lg bg-white focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base font-medium text-center"
+                  />
+                </div>
+                
+                <div className="flex flex-col">
+                  <label className="block text-xs font-medium text-sport-700 mb-1">
+                    Number of Rounds
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={settings.rounds}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '') {
+                        // Allow empty input temporarily
+                        setSettings(prev => ({ ...prev, rounds: 0 }))
+                      } else {
+                        const numValue = parseInt(value)
+                        if (!isNaN(numValue) && numValue >= 1) {
+                          setSettings(prev => ({ ...prev, rounds: numValue }))
+                        }
+                      }
+                    }}
+                    onBlur={(e) => {
+                      // When input loses focus, ensure minimum value
+                      if (settings.rounds < 1) {
+                        setSettings(prev => ({ ...prev, rounds: 1 }))
+                      }
+                    }}
+                    className="w-full p-2 border border-sport-200 rounded-lg bg-white focus:ring-2 focus:ring-sport-500 focus:border-transparent text-base font-medium text-center"
+                  />
+                </div>
+              </div>
+
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setIsEditingCustom(false)}
+                  className="flex-1 px-3 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Ensure minimum values before applying
+                    const workDuration = Math.max(1, settings.workDuration)
+                    const restDuration = Math.max(1, settings.restDuration)
+                    const rounds = Math.max(1, settings.rounds)
+                    
+                    applyPreset({
+                      name: 'Custom',
+                      work: workDuration,
+                      rest: restDuration,
+                      rounds: rounds,
+                      isCustom: true
+                    })
+                    setIsEditingCustom(false)
+                  }}
+                  className="flex-1 px-3 py-2 bg-sport-600 text-white rounded-lg hover:bg-sport-700 transition-colors text-sm"
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Settings Change Confirmation Modal */}
+      {showSettingsChangeConfirm && pendingPreset && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-sport-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Settings className="w-8 h-8 text-sport-600" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Change Workout?</h3>
+              <p className="text-gray-600 mb-4">
+                You're currently in the middle of a workout. Changing to <span className="font-semibold text-sport-600">{pendingPreset.name}</span> will reset your progress.
+              </p>
+              <div className="bg-sport-50 rounded-lg p-3 mb-6">
+                <div className="text-sm text-sport-700">
+                  <div><span className="font-medium">New settings:</span></div>
+                  <div>{pendingPreset.work}s work / {pendingPreset.rest}s rest • {pendingPreset.rounds} rounds</div>
+                </div>
+              </div>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => {
+                    setShowSettingsChangeConfirm(false)
+                    setPendingPreset(null)
+                  }}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    // Stop any playing audio first
+                    const audioManager = getAudioManager()
+                    audioManager.stopAll()
+                    setIsAudioPlaying(false)
+                    
+                    // Apply the pending preset
+                    setSettings({
+                      workDuration: pendingPreset.work,
+                      restDuration: pendingPreset.rest,
+                      rounds: pendingPreset.rounds,
+                      workoutType: pendingPreset.isCustom ? 'custom' : 'preset',
+                      currentPreset: pendingPreset.name
+                    })
+                    setTime(pendingPreset.work)
+                    setCurrentRound(1)
+                    setPhase('work')
+                    setIsRunning(false)
+                    setIsPaused(false)
+                    
+                    // Clear the confirmation state
+                    setShowSettingsChangeConfirm(false)
+                    setPendingPreset(null)
+                  }}
+                  className="flex-1 px-4 py-2 bg-sport-600 text-white rounded-xl hover:bg-sport-700 transition-colors"
+                >
+                  Change
                 </button>
               </div>
             </div>

@@ -13,6 +13,10 @@ interface AudioManager {
   pauseAmbientSound: () => void
   resumeAmbientSound: () => void
   stopAmbientSound: () => void
+  playWorkoutMusic: () => Promise<void>
+  pauseWorkoutMusic: () => void
+  resumeWorkoutMusic: () => void
+  stopWorkoutMusic: () => void
   setVolume: (volume: number) => void
   mute: () => void
   unmute: () => void
@@ -24,6 +28,10 @@ class AudioManagerImpl implements AudioManager {
   private audioElements: Map<string, HTMLAudioElement> = new Map()
   private volume: number = 0.7
   private muted: boolean = false
+  private workoutMusicQueue: string[] = []
+  private currentWorkoutMusicIndex: number = 0
+  private isWorkoutMusicPlaying: boolean = false
+  private currentWorkoutMusic: HTMLAudioElement | null = null
 
   constructor() {
     this.preloadAudio()
@@ -103,6 +111,15 @@ class AudioManagerImpl implements AudioManager {
       audio.preload = 'auto'
       audio.loop = true // Ambient sounds should loop
       this.audioElements.set(`ambient-${sound}`, audio)
+    })
+
+    // Preload workout music
+    const workoutMusic = ['workout_music1', 'workout_music2', 'workout_music3', 'workout_music4', 'workout_music5']
+    
+    workoutMusic.forEach(music => {
+      const audio = new Audio(`/audio/workout/music/${music}.mp3`)
+      audio.preload = 'auto'
+      this.audioElements.set(music, audio)
     })
   }
 
@@ -273,6 +290,7 @@ class AudioManagerImpl implements AudioManager {
       audio.pause()
       audio.currentTime = 0
     })
+    this.stopWorkoutMusic()
   }
 
   async playAmbientSound(soundType: string): Promise<void> {
@@ -326,6 +344,95 @@ class AudioManagerImpl implements AudioManager {
         audio.currentTime = 0
       }
     })
+  }
+
+  async playWorkoutMusic(): Promise<void> {
+    if (this.isWorkoutMusicPlaying) return
+
+    // Initialize workout music queue if empty
+    if (this.workoutMusicQueue.length === 0) {
+      this.workoutMusicQueue = ['workout_music1', 'workout_music2', 'workout_music3']
+      // Shuffle the queue for random order
+      for (let i = this.workoutMusicQueue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[this.workoutMusicQueue[i], this.workoutMusicQueue[j]] = [this.workoutMusicQueue[j], this.workoutMusicQueue[i]]
+      }
+      this.currentWorkoutMusicIndex = 0
+    }
+
+    this.isWorkoutMusicPlaying = true
+    await this.playNextWorkoutMusic()
+  }
+
+  private async playNextWorkoutMusic(): Promise<void> {
+    if (!this.isWorkoutMusicPlaying || this.currentWorkoutMusicIndex >= this.workoutMusicQueue.length) {
+      // Reset to beginning and shuffle again
+      this.currentWorkoutMusicIndex = 0
+      for (let i = this.workoutMusicQueue.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[this.workoutMusicQueue[i], this.workoutMusicQueue[j]] = [this.workoutMusicQueue[j], this.workoutMusicQueue[i]]
+      }
+    }
+
+    const musicName = this.workoutMusicQueue[this.currentWorkoutMusicIndex]
+    const audio = this.audioElements.get(musicName)
+    
+    if (audio) {
+      this.currentWorkoutMusic = audio
+      audio.volume = this.volume * 0.6 // Workout music at 60% volume
+      audio.currentTime = 0
+      
+      // Set up event listener for when this track ends
+      const onEnded = () => {
+        this.currentWorkoutMusicIndex++
+        if (this.isWorkoutMusicPlaying) {
+          this.playNextWorkoutMusic()
+        }
+      }
+      
+      audio.addEventListener('ended', onEnded, { once: true })
+      
+      try {
+        await audio.play()
+      } catch (error) {
+        console.error(`Error playing workout music ${musicName}:`, error)
+        // Try next track
+        this.currentWorkoutMusicIndex++
+        if (this.isWorkoutMusicPlaying) {
+          this.playNextWorkoutMusic()
+        }
+      }
+    } else {
+      console.warn(`Workout music file ${musicName}.mp3 not found. Please add /audio/workout/music/${musicName}.mp3`)
+      // Try next track
+      this.currentWorkoutMusicIndex++
+      if (this.isWorkoutMusicPlaying) {
+        this.playNextWorkoutMusic()
+      }
+    }
+  }
+
+  pauseWorkoutMusic(): void {
+    if (this.currentWorkoutMusic && !this.currentWorkoutMusic.paused) {
+      this.currentWorkoutMusic.pause()
+    }
+  }
+
+  resumeWorkoutMusic(): void {
+    if (this.currentWorkoutMusic && this.currentWorkoutMusic.paused && this.isWorkoutMusicPlaying) {
+      this.currentWorkoutMusic.play().catch(error => {
+        console.error('Error resuming workout music:', error)
+      })
+    }
+  }
+
+  stopWorkoutMusic(): void {
+    this.isWorkoutMusicPlaying = false
+    if (this.currentWorkoutMusic) {
+      this.currentWorkoutMusic.pause()
+      this.currentWorkoutMusic.currentTime = 0
+    }
+    this.currentWorkoutMusic = null
   }
 }
 

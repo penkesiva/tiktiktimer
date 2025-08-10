@@ -136,11 +136,8 @@ export default function MeditationTimerPage() {
     }
   }, [isRunning, isPaused, isAudioPlaying, playEndChime])
 
-  // Initialize mute state to match audio manager
-  useEffect(() => {
-    const audioManager = getAudioManager()
-    setIsMuted(audioManager.isMuted())
-  }, [])
+  // Initialize mute states (both start as unmuted)
+  // Note: We don't sync with audio manager's global mute state to avoid conflicts
 
   // Set client flag to prevent hydration mismatch
   useEffect(() => {
@@ -584,41 +581,36 @@ export default function MeditationTimerPage() {
 
         {/* Timer Display */}
         <div className="card-calm relative overflow-hidden">
-          {/* Volume Controls - Top Right */}
+          {/* Dual Mute Controls - Top Right */}
           <div className="absolute top-4 right-4 z-10 flex flex-col space-y-2">
             {/* Background Music Mute */}
-            <div className="flex flex-col items-center">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={toggleMute}
-                title={isMuted ? "Unmute Music" : "Mute Music"}
-                className={cn(
-                  "backdrop-blur-sm transition-colors",
-                  isMuted ? "text-red-500 hover:text-red-600 hover:bg-red-50/80" : "text-calm-600 hover:text-calm-700 hover:bg-calm-50/80"
-                )}
-              >
-                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </Button>
-              <span className="text-xs font-medium text-calm-600 mt-1">Music</span>
-            </div>
+            <button
+              onClick={toggleMute}
+              className={cn(
+                "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 backdrop-blur-sm",
+                isMuted 
+                  ? "text-red-500 hover:text-red-600 hover:bg-red-50/80 bg-red-50/50" 
+                  : "text-calm-600 hover:text-calm-700 hover:bg-calm-50/80 bg-calm-50/50"
+              )}
+              title={isMuted ? "Unmute Music" : "Mute Music"}
+            >
+              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+
             {/* Guided Audio Mute */}
             {settings.mode === 'guided' && (
-              <div className="flex flex-col items-center">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={toggleGuidedMute}
-                  title={isGuidedMuted ? "Unmute Guided Audio" : "Mute Guided Audio"}
-                  className={cn(
-                    "backdrop-blur-sm transition-colors",
-                    isGuidedMuted ? "text-red-500 hover:text-red-600 hover:bg-red-50/80" : "text-calm-600 hover:text-calm-700 hover:bg-calm-50/80"
-                  )}
-                >
-                  <User className="w-4 h-4" />
-                </Button>
-                <span className="text-xs font-medium text-calm-600 mt-1">Voice</span>
-              </div>
+              <button
+                onClick={toggleGuidedMute}
+                className={cn(
+                  "flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95 backdrop-blur-sm",
+                  isGuidedMuted 
+                    ? "text-red-500 hover:text-red-600 hover:bg-red-50/80 bg-red-50/50" 
+                    : "text-calm-600 hover:text-calm-700 hover:bg-calm-50/80 bg-calm-50/50"
+                )}
+                title={isGuidedMuted ? "Unmute Voice Guidance" : "Mute Voice Guidance"}
+              >
+                {isGuidedMuted ? <User className="w-4 h-4" /> : <User className="w-4 h-4" />}
+              </button>
             )}
           </div>
 
