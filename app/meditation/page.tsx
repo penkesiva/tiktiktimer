@@ -228,6 +228,7 @@ export default function MeditationTimerPage() {
           const audioManager = getAudioManager()
           await audioManager.playAmbientSound(settings.musicType!)
         } catch (error) {
+          // Silent error handling for production
           console.error('Error playing background music:', error)
         }
       }
@@ -672,7 +673,10 @@ export default function MeditationTimerPage() {
               <Button 
                 size="lg" 
                 variant="calm"
-                onClick={() => startTimer().catch(console.error)}
+                onClick={() => startTimer().catch((error) => {
+                  // Silent error handling for production
+                  console.error('Timer start error:', error)
+                })}
                 disabled={isAudioPlaying}
                 className="min-w-[140px] md:min-w-[160px]"
               >

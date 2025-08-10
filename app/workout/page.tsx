@@ -554,7 +554,10 @@ export default function WorkoutTimerPage() {
               <Button 
                 size="lg" 
                 variant="sport"
-                onClick={() => startTimer().catch(console.error)}
+                onClick={() => startTimer().catch((error) => {
+                  // Silent error handling for production
+                  console.error('Timer start error:', error)
+                })}
                 disabled={isAudioPlaying}
                 className="min-w-[140px] md:min-w-[160px]"
               >

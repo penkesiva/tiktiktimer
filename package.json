@@ -1,7 +1,8 @@
 {
-  "name": "workout-meditation-timer",
+  "name": "tiktiktimer",
   "version": "0.1.0",
   "private": true,
+  "description": "Professional timer app for workouts and meditation with audio guidance",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
