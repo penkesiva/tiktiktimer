@@ -109,24 +109,24 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Strategic Background Images - Fewer, Bigger, Better Positioned */}
-      <div className="absolute top-20 right-4 w-64 h-64">
+      {/* Strategic Background Images - Responsive and Mobile-Friendly */}
+      <div className="absolute top-20 right-4 w-32 h-32 md:w-48 lg:w-64 md:h-48 lg:h-64 hidden sm:block">
         <OptimizedImage
           src="/images/tiktiktimer.png"
           alt="TikTikTimer - Professional Timer App Logo"
           width={256}
           height={256}
-          className="rounded-full"
+          className="rounded-full opacity-80"
         />
       </div>
       
-      <div className="absolute bottom-4 left-4 w-56 h-56">
+      <div className="absolute bottom-4 left-4 w-28 h-28 md:w-40 lg:w-56 md:h-40 lg:h-56 hidden sm:block">
         <OptimizedImage
           src="/images/workout3.png"
           alt="Workout Timer - Fitness Training"
           width={224}
           height={224}
-          className="rounded-full"
+          className="rounded-full opacity-80"
         />
       </div>
 
@@ -160,20 +160,20 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
         <div className="max-w-4xl w-full">
           {/* Hero Section */}
-          <div className="text-center mb-16 animate-fade-in relative">
-            <h2 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-6 leading-tight">
+          <div className="text-center mb-12 sm:mb-16 animate-fade-in relative">
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">
               Focus on Your Practice
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-2">
               Clean, distraction-free timers for workouts and meditation with professional audio guidance.
             </p>
           </div>
 
           {/* Timer Options */}
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto animate-slide-up">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto animate-slide-up">
             {/* Workout Timer */}
             <Link href="/workout" className="group">
               <div className="card-sport hover:shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-2 relative overflow-hidden">

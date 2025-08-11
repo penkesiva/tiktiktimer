@@ -43,11 +43,11 @@
   }
 
   .card-sport {
-    @apply bg-gradient-to-br from-sport-50 to-sport-100/50 backdrop-blur-sm rounded-2xl shadow-xl border border-sport-200/50 p-6;
+    @apply bg-gradient-to-br from-sport-50 to-sport-100/50 backdrop-blur-sm rounded-2xl shadow-xl border border-sport-200/50 p-4 sm:p-6;
   }
 
   .card-calm {
-    @apply bg-gradient-to-br from-calm-50 to-calm-100/50 backdrop-blur-sm rounded-2xl shadow-xl border border-calm-200/50 p-6;
+    @apply bg-gradient-to-br from-calm-50 to-calm-100/50 backdrop-blur-sm rounded-2xl shadow-xl border border-calm-200/50 p-4 sm:p-6;
   }
 
   .card-energy {
