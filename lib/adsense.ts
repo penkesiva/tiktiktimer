@@ -5,7 +5,7 @@ export const ADSENSE_CONFIG = {
   
   // Ad slot IDs - replace with your actual ad slot IDs
   AD_SLOTS: {
-    BANNER: 'YOUR_BANNER_AD_SLOT',
+    BANNER: '7848437873', // Homepage bottom banner
     SIDEBAR: 'YOUR_SIDEBAR_AD_SLOT',
     INCONTENT: 'YOUR_INCONTENT_AD_SLOT',
     FOOTER: 'YOUR_FOOTER_AD_SLOT',

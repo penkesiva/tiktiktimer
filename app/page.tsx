@@ -227,6 +227,11 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Bottom Banner Ad */}
+      <div className="px-4 sm:px-6 lg:px-8 py-8">
+        <BannerAd className="mb-8" />
+      </div>
+
       {/* Footer */}
       <footer className="mt-16 py-8 border-t border-white/20">
         <div className="text-center">
