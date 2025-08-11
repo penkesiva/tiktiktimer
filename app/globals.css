@@ -7,11 +7,15 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    height: 100%;
+    overflow-x: hidden;
   }
   
   body {
     @apply bg-gradient-to-br from-gray-50 to-gray-100 text-gray-900;
     background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
   }
 }
 
@@ -44,10 +48,14 @@
 
   .card-sport {
     @apply bg-gradient-to-br from-sport-50 to-sport-100/50 backdrop-blur-sm rounded-2xl shadow-xl border border-sport-200/50 p-4 sm:p-6;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .card-calm {
     @apply bg-gradient-to-br from-calm-50 to-calm-100/50 backdrop-blur-sm rounded-2xl shadow-xl border border-calm-200/50 p-4 sm:p-6;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .card-energy {
@@ -70,6 +78,24 @@
 
   .gradient-text-calm {
     @apply bg-gradient-to-r from-calm-600 to-sport-600 bg-clip-text text-transparent;
+  }
+
+  /* Mobile-specific fixes */
+  @media (max-width: 768px) {
+    main {
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .card-sport,
+    .card-calm {
+      margin-bottom: 1rem;
+    }
+    
+    footer {
+      margin-top: 2rem;
+      padding-bottom: 2rem;
+    }
   }
 
   /* Falling Animation Styles */

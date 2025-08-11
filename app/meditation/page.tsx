@@ -481,7 +481,7 @@ export default function MeditationTimerPage() {
         />
       </Head>
       
-      <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-calm-50 via-green-50 to-emerald-100 relative overflow-hidden pb-8">
       {/* Falling Animation Background */}
       {isClient && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -551,7 +551,7 @@ export default function MeditationTimerPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-8 sm:pb-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-8 sm:pb-12 relative z-10">
         {/* Top Ad */}
         <div className="mb-4 sm:mb-6">
           <MeditationTopAd />

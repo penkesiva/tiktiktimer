@@ -77,7 +77,7 @@ export default function HomePage() {
         />
       </Head>
       
-      <main className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 relative overflow-hidden">
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 relative overflow-hidden">
       {/* Falling Animation Background */}
       {isClient && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -160,8 +160,8 @@ export default function HomePage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
-        <div className="max-w-4xl w-full">
+      <div className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-16 relative z-10">
+        <div className="max-w-4xl w-full mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12 sm:mb-16 animate-fade-in relative">
             <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">

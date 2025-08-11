@@ -394,7 +394,7 @@ export default function WorkoutTimerPage() {
         />
       </Head>
       
-      <div className="min-h-screen bg-gradient-to-br from-sport-50 via-sport-100 to-sport-200">
+      <div className="min-h-screen bg-gradient-to-br from-sport-50 via-sport-100 to-sport-200 pb-8">
       {/* Strategic Background Images - Responsive and Mobile-Friendly */}
       <div className="absolute top-20 right-4 w-32 h-32 md:w-40 lg:w-56 md:h-40 lg:h-56 hidden sm:block">
         <OptimizedImage
@@ -430,7 +430,7 @@ export default function WorkoutTimerPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-8 sm:pb-12">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-8 sm:pb-12 relative z-10">
         {/* Top Ad */}
         <div className="mb-4 sm:mb-6">
           <WorkoutTopAd />
