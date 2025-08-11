@@ -81,6 +81,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#3B82F6" />
         <meta name="msapplication-tap-highlight" content="no" />
+        <meta name="google-adsense-account" content="ca-pub-4519820641253525" />
       </head>
       <body className={inter.className}>{children}</body>
     </html>
