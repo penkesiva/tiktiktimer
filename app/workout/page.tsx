@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
-import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX, Mic, MicOff, User } from 'lucide-react'
+import { ArrowLeft, Play, Pause, RotateCcw, Settings, Music, Mic, MicOff, User, UserX } from 'lucide-react'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
@@ -37,6 +37,15 @@ export default function WorkoutTimerPage() {
     currentPreset: 'Tabata'
   })
 
+  // Add refs to prevent rapid state changes
+  const musicStateRef = useRef<{ isPlaying: boolean; lastChange: number }>({
+    isPlaying: false,
+    lastChange: 0
+  })
+  
+  // Add flag to prevent music from starting during restart
+  const isRestartingRef = useRef(false)
+
   // Get all presets including dynamic custom preset
   const getAllPresets = useCallback(() => {
     const customPreset = {
@@ -57,9 +66,10 @@ export default function WorkoutTimerPage() {
   const [phase, setPhase] = useState<'work' | 'rest' | 'break'>('work')
 
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false)
   const [isAudioCuesMuted, setIsAudioCuesMuted] = useState(false)
   const [isWorkoutMusicMuted, setIsWorkoutMusicMuted] = useState(false)
+  const [countdown, setCountdown] = useState<number | null>(null)
 
   const [isEditingCustom, setIsEditingCustom] = useState(false)
   const [showSettingsChangeConfirm, setShowSettingsChangeConfirm] = useState(false)
@@ -68,14 +78,18 @@ export default function WorkoutTimerPage() {
 
   // Audio functions
   const playStartCue = useCallback(async () => {
-    if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
     
+    // Always play start chime (unmutable)
     await audioManager.playChimeAndWait('start-chime')
-    await audioManager.playWorkoutCueAndWait('start')
     
-    // Start music after voice cue finishes
+    // Play voice cue only if not muted
+    if (!isAudioCuesMuted) {
+      await audioManager.playWorkoutCueAndWait('start')
+    }
+    
+    // Start music after chime/voice cue finishes
     if (!isWorkoutMusicMuted) {
       audioManager.playWorkoutMusic()
     }
@@ -84,17 +98,24 @@ export default function WorkoutTimerPage() {
   }, [isAudioCuesMuted, isWorkoutMusicMuted])
 
   const playRestCue = useCallback(async () => {
-    if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
+    
+    // Stop any currently playing audio cues first
+    audioManager.stopAll()
     
     // Pause music during voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.pauseWorkoutMusic()
     }
     
+    // Always play rest chime (unmutable)
     await audioManager.playChimeAndWait('rest-chime')
-    await audioManager.playWorkoutCueAndWait('rest')
+    
+    // Play voice cue only if not muted
+    if (!isAudioCuesMuted) {
+      await audioManager.playWorkoutCueAndWait('rest')
+    }
     
     // Music stays paused during rest period
     
@@ -102,23 +123,30 @@ export default function WorkoutTimerPage() {
   }, [isAudioCuesMuted, isWorkoutMusicMuted])
 
   const playRoundCue = useCallback(async (round: number) => {
-    if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
+    
+    // Stop any currently playing audio cues first
+    audioManager.stopAll()
     
     // Pause music during voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.pauseWorkoutMusic()
     }
     
+    // Always play round chime (unmutable)
     await audioManager.playChimeAndWait('round-chime')
-    if (round === settings.rounds) {
-      await audioManager.playWorkoutCueAndWait('final-round')
-    } else {
-      await audioManager.playWorkoutCueAndWait(`round-${round}`)
+    
+    // Play voice cue only if not muted
+    if (!isAudioCuesMuted) {
+      if (round === settings.rounds) {
+        await audioManager.playWorkoutCueAndWait('final-round')
+      } else {
+        await audioManager.playWorkoutCueAndWait(`round-${round}`)
+      }
     }
     
-    // Resume music after voice cue
+    // Resume music after chime/voice cue
     if (!isWorkoutMusicMuted) {
       audioManager.resumeWorkoutMusic()
     }
@@ -127,17 +155,19 @@ export default function WorkoutTimerPage() {
   }, [settings.rounds, isAudioCuesMuted, isWorkoutMusicMuted])
 
   const playWorkoutCue = useCallback(async () => {
-    if (isAudioCuesMuted) return
     setIsAudioPlaying(true)
     const audioManager = getAudioManager()
     
-    // Pause music during voice cue
-    if (!isWorkoutMusicMuted) {
-      audioManager.pauseWorkoutMusic()
-    }
+    // Stop any currently playing audio cues first
+    audioManager.pauseWorkoutMusic()
     
+    // Always play completion chime (unmutable)
     await audioManager.playChimeAndWait('completion-chime')
-    await audioManager.playWorkoutCueAndWait('workout-complete')
+    
+    // Play voice cue only if not muted
+    if (!isAudioCuesMuted) {
+      await audioManager.playWorkoutCueAndWait('workout-complete')
+    }
     
     // No music resume - workout complete
     
@@ -145,7 +175,9 @@ export default function WorkoutTimerPage() {
   }, [isAudioCuesMuted, isWorkoutMusicMuted])
 
   const playMotivationalCue = useCallback(async () => {
+    // Only play motivational cues if voice cues are not muted
     if (isAudioCuesMuted) return
+    
     const motivationalCues = ['youve-got-this', 'halfway-there', 'keep-going', 'almost-there', 'great-work', 'stay-strong']
     const randomCue = motivationalCues[Math.floor(Math.random() * motivationalCues.length)]
     const audioManager = getAudioManager()
@@ -174,30 +206,36 @@ export default function WorkoutTimerPage() {
               // Work phase finished
               if (currentRound < settings.rounds) {
                 // More rounds to go - start rest period
-                setPhase('rest')
-                setTime(settings.restDuration)
-                playRestCue() // This function already handles pausing music
+                // Don't change state immediately - wait for audio to complete
+                playRestCue().then(() => {
+                  setPhase('rest')
+                  setTime(settings.restDuration)
+                })
+                return prevTime // Keep current time until audio completes
               } else {
                 // All rounds completed
-                setPhase('break')
-                setTime(0)
-                playWorkoutCue()
-                setIsRunning(false)
-                
-                // Stop workout music when workout completes
-                const audioManager = getAudioManager()
-                audioManager.stopWorkoutMusic()
+                playWorkoutCue().then(() => {
+                  setPhase('break')
+                  setTime(0)
+                  setIsRunning(false)
+                  
+                  // Stop workout music when workout completes
+                  const audioManager = getAudioManager()
+                  audioManager.stopWorkoutMusic()
+                })
+                return prevTime // Keep current time until audio completes
               }
             } else if (phase === 'rest') {
               // Rest phase finished - start next round
               const nextRound = currentRound + 1
               if (nextRound <= settings.rounds) {
-                setCurrentRound(nextRound)
-                setPhase('work')
-                setTime(settings.workDuration)
-                
-                // Play round cue (this function already handles music pause/resume)
-                playRoundCue(nextRound)
+                // Don't change state immediately - wait for audio to complete
+                playRoundCue(nextRound).then(() => {
+                  setCurrentRound(nextRound)
+                  setPhase('work')
+                  setTime(settings.workDuration)
+                })
+                return prevTime // Keep current time until audio completes
               }
             }
             return prevTime
@@ -214,7 +252,7 @@ export default function WorkoutTimerPage() {
 
   // Motivational cues during workout
   useEffect(() => {
-    if (isRunning && phase === 'work' && !isAudioPlaying) {
+    if (isRunning && phase === 'work' && !isAudioPlaying && !isAudioCuesMuted) {
       const interval = setInterval(() => {
         if (Math.random() < 0.1) { // 10% chance every interval
           playMotivationalCue()
@@ -223,7 +261,7 @@ export default function WorkoutTimerPage() {
 
       return () => clearInterval(interval)
     }
-  }, [isRunning, phase, isAudioPlaying, playMotivationalCue])
+  }, [isRunning, phase, isAudioPlaying, playMotivationalCue, isAudioCuesMuted])
 
 
 
@@ -239,27 +277,75 @@ export default function WorkoutTimerPage() {
     }
   }, [])
 
-  // Monitor workout music mute state
+  // Monitor workout music mute state with debouncing
   useEffect(() => {
-    const audioManager = getAudioManager()
-    if (isWorkoutMusicMuted) {
-      audioManager.stopWorkoutMusic()
-    } else if (isRunning && !isPaused && phase === 'work') {
-      audioManager.playWorkoutMusic()
+    // Don't start music if we're in the middle of restarting
+    if (isRestartingRef.current) {
+      return
     }
-  }, [isWorkoutMusicMuted, isRunning, isPaused, phase])
+    
+    // Additional safety: don't start music if session is not actively running
+    if (!isRunning || isPaused) {
+      return
+    }
+    
+    const audioManager = getAudioManager()
+    const now = Date.now()
+    const minInterval = 500 // Minimum 500ms between music state changes
+    
+    if (isWorkoutMusicMuted) {
+      if (!musicStateRef.current.isPlaying || (now - musicStateRef.current.lastChange) > minInterval) {
+        audioManager.stopWorkoutMusic()
+        musicStateRef.current.isPlaying = false
+        musicStateRef.current.lastChange = now
+      }
+    } else if (phase === 'work' && !isAudioPlaying) {
+      // Only start music if no audio cues are playing and enough time has passed
+      if (!musicStateRef.current.isPlaying && (now - musicStateRef.current.lastChange) > minInterval) {
+        audioManager.playWorkoutMusic()
+        musicStateRef.current.isPlaying = true
+        musicStateRef.current.lastChange = now
+      }
+    }
+  }, [isWorkoutMusicMuted, isRunning, isPaused, phase, isAudioPlaying])
 
   const startTimer = useCallback(async () => {
-    if (!isRunning) {
-      setCurrentRound(1)
-      setPhase('work')
-      setTime(settings.workDuration)
-      setIsRunning(true)
-      setIsPaused(false)
+    if (!isRunning && !countdown) {
+      // Start countdown
+      setCountdown(3)
       
-      await playStartCue()
+      // Countdown sequence: 3, 2, 1, Go!
+      const countdownInterval = setInterval(async () => {
+        setCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(countdownInterval)
+            setCountdown(null)
+            
+            // Start the actual workout
+            setCurrentRound(1)
+            setPhase('work')
+            setTime(settings.workDuration)
+            setIsRunning(true)
+            setIsPaused(false)
+            
+            // Play start cue after countdown
+            playStartCue()
+            return null
+          }
+          
+          // Play countdown sound for each number
+          if (prev > 1) {
+            const audioManager = getAudioManager()
+            audioManager.playChime('round-chime').catch(() => {
+              // Silent error handling for countdown sounds
+            })
+          }
+          
+          return prev - 1
+        })
+      }, 1000)
     }
-  }, [isRunning, settings.workDuration, playStartCue])
+  }, [isRunning, countdown, settings.workDuration, playStartCue])
 
   const pauseTimer = () => {
     setIsPaused(true)
@@ -275,20 +361,44 @@ export default function WorkoutTimerPage() {
     }
   }
 
-  const resetTimer = () => {
+  const restartSession = () => {
+    // Set restarting flag to prevent music from starting
+    isRestartingRef.current = true
+    
+    // Stop all audio immediately
+    const audioManager = getAudioManager()
+    audioManager.stopAll()
+    
+    // Reset all timer states
     setIsRunning(false)
     setIsPaused(false)
     setCurrentRound(1)
     setPhase('work')
     setTime(settings.workDuration)
-    setShowResetConfirm(false)
+    setShowRestartConfirm(false)
     
-    const audioManager = getAudioManager()
-    audioManager.stopWorkoutMusic()
+    // Reset audio states
+    setIsAudioPlaying(false)
+    setCountdown(null)
+    
+    // Clear any pending intervals
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+    
+    // Reset music state refs
+    musicStateRef.current.isPlaying = false
+    musicStateRef.current.lastChange = 0
+    
+    // Keep restarting flag active longer to prevent music from starting
+    setTimeout(() => {
+      isRestartingRef.current = false
+    }, 500) // Increased delay to 500ms
   }
 
-  const confirmReset = () => {
-    setShowResetConfirm(true)
+  const confirmRestart = () => {
+    setShowRestartConfirm(true)
   }
 
 
@@ -555,7 +665,7 @@ export default function WorkoutTimerPage() {
               )}
               title={isWorkoutMusicMuted ? "Unmute Workout Music" : "Mute Workout Music"}
             >
-              {isWorkoutMusicMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                              {isWorkoutMusicMuted ? <Music className="w-4 h-4" /> : <Music className="w-4 h-4" />}
             </button>
 
                                {/* Audio Cues Mute */}
@@ -569,19 +679,21 @@ export default function WorkoutTimerPage() {
                      )}
                      title={isAudioCuesMuted ? "Unmute Voice Cues" : "Mute Voice Cues"}
                    >
-                     {isAudioCuesMuted ? <User className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                     {isAudioCuesMuted ? <UserX className="w-4 h-4" /> : <User className="w-4 h-4" />}
                    </button>
           </div>
 
           {/* Filling Animation Background */}
           {isRunning && (
             <div 
-              className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-sport-200/30 to-sport-300/30 transition-all duration-1000 ease-out"
+              className="absolute inset-0 bg-gradient-to-r from-sport-200/30 to-sport-300/30 transition-all duration-1000 ease-out"
               style={{
                 width: `${Math.min(100, ((currentRound - 1) / settings.rounds) * 100 + (phase === 'work' ? ((settings.workDuration - time) / settings.workDuration) * (1 / settings.rounds) * 100 : (phase === 'rest' ? ((currentRound - 1) / settings.rounds) * 100 : 0)))}%`
               }}
             />
           )}
+
+
           {/* Current Timer Info */}
           <div className="text-center mb-4">
             <div className="text-xs md:text-sm font-medium text-sport-600 bg-sport-100 px-3 md:px-4 py-2 rounded-lg inline-block max-w-full">
@@ -603,6 +715,7 @@ export default function WorkoutTimerPage() {
             phase={phase}
             isAudioPlaying={isAudioPlaying}
             className="mb-8"
+            showStatusDots={false}
             showAudioIndicator={false}
           />
 
@@ -618,11 +731,11 @@ export default function WorkoutTimerPage() {
                   // Silent error handling for production
                   console.error('Timer start error:', error)
                 })}
-                disabled={isAudioPlaying}
+                disabled={isAudioPlaying || countdown !== null}
                 className="min-w-[140px] md:min-w-[160px]"
               >
                 <Play className="w-5 h-5 mr-2" />
-                {isAudioPlaying ? 'Starting...' : 'Start Workout'}
+                {countdown ? `Get Ready! ${countdown}` : (isAudioPlaying ? 'Starting...' : 'Start Workout')}
               </Button>
             ) : (
               <div className="flex items-center space-x-3 md:space-x-4">
@@ -648,9 +761,9 @@ export default function WorkoutTimerPage() {
                   </Button>
                 )}
                 <button
-                  onClick={confirmReset}
+                  onClick={confirmRestart}
                   className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-white border-2 border-gray-300 hover:border-red-400 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
-                  title="Reset Timer"
+                  title="Restart Session"
                 >
                   <RotateCcw className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
@@ -665,30 +778,49 @@ export default function WorkoutTimerPage() {
         </div>
       </div>
 
-      {/* Reset Confirmation Modal */}
-      {showResetConfirm && (
+              {/* Full-Screen Countdown Overlay */}
+      {countdown && (
+        <div className="fixed inset-0 bg-gradient-to-br from-sport-500/95 to-sport-600/95 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="text-center text-white">
+            <div className={`text-8xl md:text-9xl font-bold mb-6 transition-all duration-300 ${
+              countdown === 1 ? 'animate-bounce scale-110' : 'animate-pulse'
+            }`}>
+              {countdown === 1 ? 'GO!' : countdown}
+            </div>
+            <div className="text-2xl md:text-3xl font-medium opacity-90">
+              {countdown === 1 ? 'Let\'s get started!' : 'Get ready...'}
+            </div>
+            <div className="text-lg opacity-75 mt-4">
+              {countdown === 1 ? 'Workout begins now!' : `${countdown} seconds to start`}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Restart Session Confirmation Modal */}
+      {showRestartConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <RotateCcw className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Reset Timer?</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Restart Session?</h3>
               <p className="text-gray-600 mb-6">
-                This will reset your current workout progress. Are you sure you want to continue?
+                This will restart your workout session from the beginning. Are you sure you want to continue?
               </p>
               <div className="flex space-x-3">
                 <button
-                  onClick={() => setShowResetConfirm(false)}
+                  onClick={() => setShowRestartConfirm(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={resetTimer}
+                  onClick={restartSession}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
                 >
-                  Reset
+                  Restart
                 </button>
               </div>
             </div>

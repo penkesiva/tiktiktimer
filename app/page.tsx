@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Play } from 'lucide-react'
 import { BannerAd } from '@/components/ads/GoogleAdsense'
+import { MockAd } from '@/components/ads/MockAd'
 import { OptimizedImage } from '@/components/ui/Image'
 import Head from 'next/head'
 
 export default function HomePage() {
   const [isClient, setIsClient] = useState(false)
+  const [showMockAds, setShowMockAds] = useState(true) // Toggle for mock ads
 
   // Set client flag to prevent hydration mismatch
   useEffect(() => {
@@ -149,6 +151,12 @@ export default function HomePage() {
               <Link href="/feedback" className="text-gray-600 hover:text-sport-600 transition-colors font-medium">
                 Feedback
               </Link>
+              <button
+                onClick={() => setShowMockAds(!showMockAds)}
+                className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
+              >
+                {showMockAds ? 'Show Real Ads' : 'Show Mock Ads'}
+              </button>
             </nav>
           </div>
         </div>
@@ -156,7 +164,11 @@ export default function HomePage() {
 
       {/* Top Banner Ad */}
       <div className="px-4 sm:px-6 lg:px-8 py-4">
-        <BannerAd className="mb-4" />
+        {showMockAds ? (
+          <MockAd variant="banner" className="mb-4" />
+        ) : (
+          <BannerAd className="mb-4" />
+        )}
       </div>
 
       {/* Main Content */}
@@ -229,7 +241,11 @@ export default function HomePage() {
 
       {/* Bottom Banner Ad */}
       <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <BannerAd className="mb-8" />
+        {showMockAds ? (
+          <MockAd variant="banner" className="mb-8" />
+        ) : (
+          <BannerAd className="mb-8" />
+        )}
       </div>
 
       {/* Footer */}

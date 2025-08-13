@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { ArrowLeft, Play, Pause, RotateCcw, Settings, Volume2, VolumeX, Mic, MicOff, User, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Play, Pause, RotateCcw, Settings, Music, Mic, MicOff, User, UserX, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { getAudioManager, playMeditationCue } from '@/lib/audio'
@@ -66,8 +66,9 @@ export default function MeditationTimerPage() {
   const [isGuidedMuted, setIsGuidedMuted] = useState(false)
   const [currentPrompt, setCurrentPrompt] = useState<string | null>(null)
   const [isAudioPlaying, setIsAudioPlaying] = useState(false)
-  const [showResetConfirm, setShowResetConfirm] = useState(false)
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false)
   const [showSettingsChangeConfirm, setShowSettingsChangeConfirm] = useState(false)
+  const [countdown, setCountdown] = useState<number | null>(null)
   const [pendingSettingsChange, setPendingSettingsChange] = useState<{ type: 'duration' | 'mode' | 'soundType' | 'musicType' | 'preset', value: any } | null>(null)
   const [wasMusicPlaying, setWasMusicPlaying] = useState(false)
   const [isClient, setIsClient] = useState(false)
@@ -77,44 +78,49 @@ export default function MeditationTimerPage() {
 
   // Audio functions using actual audio files
   const playStartChime = useCallback(async () => {
+    setIsAudioPlaying(true)
+    const audioManager = getAudioManager()
+    
+    // Always play start chime (unmutable)
+    await audioManager.playChimeAndWait('meditation-start-chime')
+    
+    // Play voice cue only if not muted
     if (!isGuidedMuted) {
-      setIsAudioPlaying(true)
-      const audioManager = getAudioManager()
-      await audioManager.playChimeAndWait('meditation-start-chime')
       await audioManager.playMeditationCueAndWait('meditation-beginning')
-      setIsAudioPlaying(false)
-    } else {
-      setIsAudioPlaying(false)
     }
+    
+    setIsAudioPlaying(false)
   }, [isGuidedMuted])
 
   const playEndChime = useCallback(async () => {
+    setIsAudioPlaying(true)
+    const audioManager = getAudioManager()
+    
+    // Always play end chime (unmutable)
+    await audioManager.playChimeAndWait('meditation-end-chime')
+    
+    // Play voice cue only if not muted
     if (!isGuidedMuted) {
-      setIsAudioPlaying(true)
-      const audioManager = getAudioManager()
-      await audioManager.playChimeAndWait('meditation-end-chime')
       await audioManager.playMeditationCueAndWait('meditation-complete')
-      setIsAudioPlaying(false)
-      // Stop background music after the end chime completes
-      if (settings.musicType) {
-        audioManager.stopAmbientSound()
-      }
-    } else {
-      setIsAudioPlaying(false)
-      // Stop background music even if guided audio is muted
-      if (settings.musicType) {
-        const audioManager = getAudioManager()
-        audioManager.stopAmbientSound()
-      }
+    }
+    
+    setIsAudioPlaying(false)
+    
+    // Stop background music after the chime/voice cue completes
+    if (settings.musicType) {
+      audioManager.stopAmbientSound()
     }
   }, [isGuidedMuted, settings.musicType])
 
   const playMidwayChime = useCallback(async () => {
-    if (!isGuidedMuted && settings.mode === 'guided') {
+    // Only play midway chime if guided mode is enabled
+    if (settings.mode === 'guided') {
       const audioManager = getAudioManager()
+      
+      // Always play midway chime (unmutable)
       await audioManager.playChime('midway-chime')
     }
-  }, [isGuidedMuted, settings.mode])
+  }, [settings.mode])
 
   // Timer logic
   useEffect(() => {
@@ -209,9 +215,16 @@ export default function MeditationTimerPage() {
               'feel-peace-within'
             ]
             if (promptIndex >= 0 && promptIndex < promptNames.length) {
+              // Temporarily unmute audio manager for this prompt
+              const wasMuted = audioManager.isMuted()
+              if (wasMuted) audioManager.unmute()
+              
               audioManager.playPrompt(promptNames[promptIndex]).catch(() => {
                 // Silent error handling for audio playback
               })
+              
+              // Restore mute state
+              if (wasMuted) audioManager.mute()
             }
           }
           setTimeout(() => setCurrentPrompt(null), 5000) // Show prompt for 5 seconds
@@ -259,12 +272,41 @@ export default function MeditationTimerPage() {
   }, [isRunning, time, settings.duration, settings.musicType])
 
   const startTimer = useCallback(async () => {
-    setIsRunning(true)
-    setIsPaused(false)
-    setTime(settings.duration * 60)
-    setWasMusicPlaying(settings.musicType ? true : false)
-    await playStartChime()
-  }, [settings.duration, playStartChime, settings.musicType])
+    if (!isRunning && !countdown) {
+      // Start countdown
+      setCountdown(3)
+      
+      // Countdown sequence: 3, 2, 1, Begin
+      const countdownInterval = setInterval(async () => {
+        setCountdown((prev) => {
+          if (prev === null || prev <= 1) {
+            clearInterval(countdownInterval)
+            setCountdown(null)
+            
+            // Start the actual meditation
+            setIsRunning(true)
+            setIsPaused(false)
+            setTime(settings.duration * 60)
+            setWasMusicPlaying(settings.musicType ? true : false)
+            
+            // Play start chime after countdown
+            playStartChime()
+            return null
+          }
+          
+          // Play countdown sound for each number
+          if (prev > 1) {
+            const audioManager = getAudioManager()
+            audioManager.playChime('midway-chime').catch(() => {
+              // Silent error handling for countdown sounds
+            })
+          }
+          
+          return prev - 1
+        })
+      }, 1000)
+    }
+  }, [isRunning, countdown, settings.duration, playStartChime, settings.musicType])
 
   const pauseTimer = useCallback(() => {
     setIsPaused(true)
@@ -287,17 +329,18 @@ export default function MeditationTimerPage() {
     }
   }, [settings.musicType, isMuted, wasMusicPlaying])
 
-  const resetTimer = useCallback(() => {
+  const restartSession = useCallback(() => {
     setIsRunning(false)
     setIsPaused(false)
     setTime(settings.duration * 60)
     setCurrentPrompt(null)
-    setShowResetConfirm(false)
+    setShowRestartConfirm(false)
     setWasMusicPlaying(false)
+    setCountdown(null)
   }, [settings.duration])
 
-  const confirmReset = useCallback(() => {
-    setShowResetConfirm(true)
+  const confirmRestart = useCallback(() => {
+    setShowRestartConfirm(true)
   }, [])
 
   const toggleMute = useCallback(() => {
@@ -329,7 +372,7 @@ export default function MeditationTimerPage() {
       setShowSettingsChangeConfirm(true)
     } else {
       setSettings(prev => ({ ...prev, duration }))
-      resetTimer()
+      restartSession()
     }
   }
 
@@ -340,7 +383,7 @@ export default function MeditationTimerPage() {
     } else {
       setSettings(prev => ({ ...prev, mode }))
       setCurrentPrompt(null)
-      resetTimer()
+      restartSession()
     }
   }
 
@@ -353,7 +396,7 @@ export default function MeditationTimerPage() {
       // Stop any current ambient sound and reset
       const audioManager = getAudioManager()
       audioManager.stopAmbientSound()
-      resetTimer()
+      restartSession()
     }
   }
 
@@ -655,7 +698,7 @@ export default function MeditationTimerPage() {
               )}
               title={isMuted ? "Unmute Music" : "Mute Music"}
             >
-              {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                              {isMuted ? <Music className="w-4 h-4" /> : <Music className="w-4 h-4" />}
             </button>
 
             {/* Guided Audio Mute */}
@@ -670,7 +713,7 @@ export default function MeditationTimerPage() {
                 )}
                 title={isGuidedMuted ? "Unmute Voice Guidance" : "Mute Voice Guidance"}
               >
-                {isGuidedMuted ? <User className="w-4 h-4" /> : <User className="w-4 h-4" />}
+                {isGuidedMuted ? <UserX className="w-4 h-4" /> : <User className="w-4 h-4" />}
               </button>
             )}
           </div>
@@ -684,6 +727,8 @@ export default function MeditationTimerPage() {
               }}
             />
           )}
+
+
 
           {/* Current Timer Info */}
           <div className="text-center mb-4">
@@ -709,21 +754,7 @@ export default function MeditationTimerPage() {
             />
           </div>
 
-          {/* Custom meditation status dots */}
-          <div className="flex items-center justify-center mb-4">
-            <div className="flex items-center space-x-2">
-              <div className={cn(
-                'w-2 h-2 rounded-full transition-all duration-300',
-                isRunning && !isPaused ? 'bg-calm-400 animate-pulse' : 
-                isPaused ? 'bg-calm-300' : 'bg-calm-200'
-              )} />
-              <div className={cn(
-                'w-2 h-2 rounded-full transition-all duration-300',
-                isRunning && !isPaused ? 'bg-calm-400 animate-pulse' : 
-                isPaused ? 'bg-calm-300' : 'bg-calm-200'
-              )} />
-            </div>
-          </div>
+
 
           {/* Guided prompts are now handled by audio only */}
 
@@ -737,11 +768,11 @@ export default function MeditationTimerPage() {
                   // Silent error handling for production
                   console.error('Timer start error:', error)
                 })}
-                disabled={isAudioPlaying}
+                disabled={isAudioPlaying || countdown !== null}
                 className="min-w-[140px] md:min-w-[160px]"
               >
                 <Play className="w-5 h-5 mr-2" />
-                {isAudioPlaying ? 'Starting...' : 'Start Meditation'}
+                {countdown ? `Prepare! ${countdown}` : (isAudioPlaying ? 'Starting...' : 'Start Meditation')}
               </Button>
             ) : (
               <div className="flex items-center space-x-3 md:space-x-4">
@@ -767,9 +798,9 @@ export default function MeditationTimerPage() {
                   </Button>
                 )}
                 <button
-                  onClick={confirmReset}
+                  onClick={confirmRestart}
                   className="flex items-center justify-center w-12 h-12 md:w-14 md:h-14 bg-white border-2 border-gray-300 hover:border-red-400 hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 active:scale-95"
-                  title="Reset Timer"
+                  title="Restart Session"
                 >
                   <RotateCcw className="w-5 h-5 md:w-6 md:h-6" />
                 </button>
@@ -784,30 +815,49 @@ export default function MeditationTimerPage() {
         </div>
       </div>
 
-      {/* Reset Confirmation Modal */}
-      {showResetConfirm && (
+      {/* Full-Screen Countdown Overlay */}
+      {countdown && (
+        <div className="fixed inset-0 bg-gradient-to-br from-calm-500/95 to-calm-600/95 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="text-center text-white">
+            <div className={`text-8xl md:text-9xl font-bold mb-6 transition-all duration-300 ${
+              countdown === 1 ? 'animate-bounce scale-110' : 'animate-pulse'
+            }`}>
+              {countdown === 1 ? 'Begin' : countdown}
+            </div>
+            <div className="text-2xl md:text-3xl font-medium opacity-90">
+              {countdown === 1 ? 'Find your peace...' : 'Prepare yourself...'}
+            </div>
+            <div className="text-lg opacity-75 mt-4">
+              {countdown === 1 ? 'Meditation begins now!' : `${countdown} seconds to start`}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Restart Session Confirmation Modal */}
+      {showRestartConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6">
             <div className="text-center">
               <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <RotateCcw className="w-8 h-8 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Reset Timer?</h3>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">Restart Session?</h3>
               <p className="text-gray-600 mb-6">
-                This will reset your current meditation session. Are you sure you want to continue?
+                This will restart your current meditation session. Are you sure you want to continue?
               </p>
               <div className="flex space-x-3">
                 <button
-                  onClick={() => setShowResetConfirm(false)}
+                  onClick={() => setShowRestartConfirm(false)}
                   className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={resetTimer}
+                  onClick={restartSession}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors"
                 >
-                  Reset
+                  Restart
                 </button>
               </div>
             </div>

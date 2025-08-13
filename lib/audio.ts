@@ -151,8 +151,8 @@ class AudioManagerImpl implements AudioManager {
     }
   }
 
-  async playWorkoutCue(cueName: string): Promise<void> {
-    if (this.muted) return
+  async playWorkoutCue(cueName: string, forcePlay: boolean = false): Promise<void> {
+    if (this.muted && !forcePlay) return
 
     const audio = this.audioElements.get(cueName)
     if (audio) {
@@ -165,8 +165,8 @@ class AudioManagerImpl implements AudioManager {
     }
   }
 
-  async playMotivationalCue(cueName: string): Promise<void> {
-    if (this.muted) return
+  async playMotivationalCue(cueName: string, forcePlay: boolean = false): Promise<void> {
+    if (this.muted && !forcePlay) return
 
     const audio = this.audioElements.get(cueName)
     if (audio) {
@@ -193,8 +193,8 @@ class AudioManagerImpl implements AudioManager {
     }
   }
 
-  async playChimeAndWait(chimeName: string): Promise<void> {
-    if (this.muted) return
+  async playChimeAndWait(chimeName: string, forcePlay: boolean = false): Promise<void> {
+    if (this.muted && !forcePlay) return
 
     const audio = this.audioElements.get(chimeName)
     if (audio) {
@@ -217,8 +217,8 @@ class AudioManagerImpl implements AudioManager {
     }
   }
 
-  async playWorkoutCueAndWait(cueName: string): Promise<void> {
-    if (this.muted) return
+  async playWorkoutCueAndWait(cueName: string, forcePlay: boolean = false): Promise<void> {
+    if (this.muted && !forcePlay) return
 
     const audio = this.audioElements.get(cueName)
     if (audio) {
@@ -241,8 +241,8 @@ class AudioManagerImpl implements AudioManager {
     }
   }
 
-  async playMeditationCueAndWait(cueName: string): Promise<void> {
-    if (this.muted) return
+  async playMeditationCueAndWait(cueName: string, forcePlay: boolean = false): Promise<void> {
+    if (this.muted && !forcePlay) return
 
     const audio = this.audioElements.get(cueName)
     if (audio) {
