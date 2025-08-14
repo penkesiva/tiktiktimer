@@ -153,12 +153,12 @@ export function MeditationTopAd({ className = '' }: { className?: string }) {
   )
 }
 
-// Meditation Timer Bottom Ad
+// Meditation Timer Bottom Ad - Updated to use BANNER slot
 export function MeditationBottomAd({ className = '' }: { className?: string }) {
   return (
     <div className={`w-full max-w-4xl mx-auto ${className}`}>
       <GoogleAdsense
-        adSlot={ADSENSE_CONFIG.AD_SLOTS.MEDITATION_BOTTOM}
+        adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="banner"
         className="w-full h-[90px] bg-gradient-to-r from-calm-100 to-calm-200 rounded-xl flex items-center justify-center shadow-lg"
       />
