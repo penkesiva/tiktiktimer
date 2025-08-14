@@ -75,12 +75,12 @@ export function BannerAd({ className = '' }: { className?: string }) {
   )
 }
 
-// Sidebar Ad Component
+// Sidebar Ad Component - Updated to use BANNER slot
 export function SidebarAd({ className = '' }: { className?: string }) {
   return (
     <div className={`w-full ${className}`}>
       <GoogleAdsense
-        adSlot={ADSENSE_CONFIG.AD_SLOTS.SIDEBAR}
+        adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="rectangle"
         className="w-full h-[600px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg"
       />
@@ -88,12 +88,12 @@ export function SidebarAd({ className = '' }: { className?: string }) {
   )
 }
 
-// In-Content Ad Component
+// In-Content Ad Component - Updated to use BANNER slot
 export function InContentAd({ className = '' }: { className?: string }) {
   return (
     <div className={`w-full max-w-2xl mx-auto ${className}`}>
       <GoogleAdsense
-        adSlot={ADSENSE_CONFIG.AD_SLOTS.INCONTENT}
+        adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="rectangle"
         className="w-full h-[250px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg"
       />
@@ -101,12 +101,12 @@ export function InContentAd({ className = '' }: { className?: string }) {
   )
 }
 
-// Footer Ad Component
+// Footer Ad Component - Updated to use BANNER slot
 export function FooterAd({ className = '' }: { className?: string }) {
   return (
     <div className={`w-full max-w-4xl mx-auto ${className}`}>
       <GoogleAdsense
-        adSlot={ADSENSE_CONFIG.AD_SLOTS.FOOTER}
+        adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="banner"
         className="w-full h-[90px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg"
       />
@@ -114,12 +114,12 @@ export function FooterAd({ className = '' }: { className?: string }) {
   )
 }
 
-// Workout Timer Top Ad
+// Workout Timer Top Ad - Updated to use BANNER slot
 export function WorkoutTopAd({ className = '' }: { className?: string }) {
   return (
     <div className={`w-full max-w-4xl mx-auto ${className}`}>
       <GoogleAdsense
-        adSlot={ADSENSE_CONFIG.AD_SLOTS.WORKOUT_TOP}
+        adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="banner"
         className="w-full h-[90px] bg-gradient-to-r from-sport-100 to-sport-200 rounded-xl flex items-center justify-center shadow-lg"
       />
@@ -127,12 +127,12 @@ export function WorkoutTopAd({ className = '' }: { className?: string }) {
   )
 }
 
-// Workout Timer Bottom Ad
+// Workout Timer Bottom Ad - Updated to use BANNER slot
 export function WorkoutBottomAd({ className = '' }: { className?: string }) {
   return (
     <div className={`w-full max-w-4xl mx-auto ${className}`}>
       <GoogleAdsense
-        adSlot={ADSENSE_CONFIG.AD_SLOTS.WORKOUT_BOTTOM}
+        adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="banner"
         className="w-full h-[90px] bg-gradient-to-r from-sport-100 to-sport-200 rounded-xl flex items-center justify-center shadow-lg"
       />
@@ -140,12 +140,12 @@ export function WorkoutBottomAd({ className = '' }: { className?: string }) {
   )
 }
 
-// Meditation Timer Top Ad
+// Meditation Timer Top Ad - Updated to use BANNER slot
 export function MeditationTopAd({ className = '' }: { className?: string }) {
   return (
     <div className={`w-full max-w-4xl mx-auto ${className}`}>
       <GoogleAdsense
-        adSlot={ADSENSE_CONFIG.AD_SLOTS.MEDITATION_TOP}
+        adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="banner"
         className="w-full h-[90px] bg-gradient-to-r from-calm-100 to-calm-200 rounded-xl flex items-center justify-center shadow-lg"
       />
