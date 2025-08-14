@@ -6,7 +6,7 @@ import { ArrowLeft, Play, Pause, RotateCcw, Settings, Music, Mic, MicOff, User, 
 import { Button } from '@/components/ui/Button'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { getAudioManager, playMeditationCue } from '@/lib/audio'
-import { MeditationTopAd, MeditationBottomAd } from '@/components/ads/GoogleAdsense'
+
 import { OptimizedImage } from '@/components/ui/Image'
 import Head from 'next/head'
 
@@ -279,28 +279,32 @@ export default function MeditationTimerPage() {
       // Countdown sequence: 3, 2, 1, Begin
       const countdownInterval = setInterval(async () => {
         setCountdown((prev) => {
-          if (prev === null || prev <= 1) {
+          if (prev === null) return null
+          
+          if (prev === 1) {
+            // Show Begin for 1 second
+            setTimeout(() => {
+              setCountdown(null)
+              
+              // Start the actual meditation
+              setIsRunning(true)
+              setIsPaused(false)
+              setTime(settings.duration * 60)
+              setWasMusicPlaying(settings.musicType ? true : false)
+              
+              // Play start chime after countdown
+              playStartChime()
+            }, 1000) // 1 second delay to show Begin animation
+            
+            return 0 // Show Begin for 1 second
+          }
+          
+          if (prev <= 0) {
             clearInterval(countdownInterval)
-            setCountdown(null)
-            
-            // Start the actual meditation
-            setIsRunning(true)
-            setIsPaused(false)
-            setTime(settings.duration * 60)
-            setWasMusicPlaying(settings.musicType ? true : false)
-            
-            // Play start chime after countdown
-            playStartChime()
             return null
           }
           
-          // Play countdown sound for each number
-          if (prev > 1) {
-            const audioManager = getAudioManager()
-            audioManager.playChime('midway-chime').catch(() => {
-              // Silent error handling for countdown sounds
-            })
-          }
+
           
           return prev - 1
         })
@@ -595,10 +599,7 @@ export default function MeditationTimerPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-8 sm:pb-12 relative z-10">
-        {/* Top Ad */}
-        <div className="mb-4 sm:mb-6">
-          <MeditationTopAd />
-        </div>
+
 
         {/* Meditation Presets */}
         <div className="card-calm mb-6 relative overflow-hidden">
@@ -730,6 +731,8 @@ export default function MeditationTimerPage() {
 
 
 
+
+
           {/* Current Timer Info */}
           <div className="text-center mb-4">
             <div className="text-xs md:text-sm font-medium text-calm-600 bg-calm-100 px-3 md:px-4 py-2 rounded-lg inline-block max-w-full">
@@ -772,7 +775,7 @@ export default function MeditationTimerPage() {
                 className="min-w-[140px] md:min-w-[160px]"
               >
                 <Play className="w-5 h-5 mr-2" />
-                {countdown ? `Prepare! ${countdown}` : (isAudioPlaying ? 'Starting...' : 'Start Meditation')}
+                {countdown ? `Starting in ${countdown}...` : (isAudioPlaying ? 'Starting...' : 'Start Meditation')}
               </Button>
             ) : (
               <div className="flex items-center space-x-3 md:space-x-4">
@@ -809,30 +812,10 @@ export default function MeditationTimerPage() {
           </div>
         </div>
 
-        {/* Bottom Ad */}
-        <div className="mt-8">
-          <MeditationBottomAd />
-        </div>
+
       </div>
 
-      {/* Full-Screen Countdown Overlay */}
-      {countdown && (
-        <div className="fixed inset-0 bg-gradient-to-br from-calm-500/95 to-calm-600/95 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="text-center text-white">
-            <div className={`text-8xl md:text-9xl font-bold mb-6 transition-all duration-300 ${
-              countdown === 1 ? 'animate-bounce scale-110' : 'animate-pulse'
-            }`}>
-              {countdown === 1 ? 'Begin' : countdown}
-            </div>
-            <div className="text-2xl md:text-3xl font-medium opacity-90">
-              {countdown === 1 ? 'Find your peace...' : 'Prepare yourself...'}
-            </div>
-            <div className="text-lg opacity-75 mt-4">
-              {countdown === 1 ? 'Meditation begins now!' : `${countdown} seconds to start`}
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* Restart Session Confirmation Modal */}
       {showRestartConfirm && (
@@ -894,6 +877,27 @@ export default function MeditationTimerPage() {
             </div>
           </div>
         </div>
+      )}
+
+            {/* Floating Countdown Overlay */}
+      {countdown !== null && (
+        <>
+          {/* Subtle backdrop */}
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30" />
+          {/* Countdown card */}
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40">
+            <div className="text-center p-8 bg-gradient-to-r from-calm-100 to-calm-200 rounded-3xl border-4 border-calm-300 shadow-2xl backdrop-blur-sm">
+              <div className={`text-7xl md:text-8xl font-bold text-calm-700 mb-4 transition-all duration-300 ${
+                countdown === 0 ? 'animate-bounce scale-110' : 'animate-pulse'
+              }`}>
+                {countdown === 0 ? 'Begin' : countdown}
+              </div>
+              <div className="text-xl md:text-2xl font-medium text-calm-600">
+                {countdown === 0 ? 'Find your peace...' : 'Prepare yourself...'}
+              </div>
+            </div>
+          </div>
+        </>
       )}
       </div>
     </>

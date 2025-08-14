@@ -111,26 +111,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Strategic Background Images - Responsive and Mobile-Friendly */}
-      <div className="absolute top-20 right-4 w-32 h-32 md:w-48 lg:w-64 md:h-48 lg:h-64 hidden sm:block">
-        <OptimizedImage
-          src="/images/tiktiktimer.png"
-          alt="TikTikTimer - Professional Timer App Logo"
-          width={256}
-          height={256}
-          className="rounded-full opacity-80"
-        />
-      </div>
-      
-      <div className="absolute bottom-4 left-4 w-28 h-28 md:w-40 lg:w-56 md:h-40 lg:h-56 hidden sm:block">
-        <OptimizedImage
-          src="/images/workout3.png"
-          alt="Workout Timer - Fitness Training"
-          width={224}
-          height={224}
-          className="rounded-full opacity-80"
-        />
-      </div>
+
 
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
@@ -162,17 +143,8 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Top Banner Ad */}
-      <div className="px-4 sm:px-6 lg:px-8 py-4">
-        {showMockAds ? (
-          <MockAd variant="banner" className="mb-4" />
-        ) : (
-          <BannerAd className="mb-4" />
-        )}
-      </div>
-
       {/* Main Content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-16 relative z-10">
+      <div className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12 pb-8 relative z-20">
         <div className="max-w-4xl w-full mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12 sm:mb-16 animate-fade-in relative">
@@ -185,18 +157,32 @@ export default function HomePage() {
           </div>
 
           {/* Timer Options */}
-          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto animate-slide-up">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto animate-slide-up relative">
+            {/* Background Images */}
+            <div className="absolute -bottom-48 -left-48 w-28 h-28 md:w-40 lg:w-56 md:h-40 lg:h-56 hidden sm:block pointer-events-none z-10">
+              <OptimizedImage
+                src="/images/workout3.png"
+                alt="Workout Timer - Fitness Training"
+                width={224}
+                height={224}
+                className="rounded-full opacity-80"
+              />
+            </div>
+            
+            <div className="absolute -top-48 -right-48 w-28 h-28 md:w-40 lg:w-56 md:h-40 lg:h-56 hidden sm:block pointer-events-none z-10">
+              <OptimizedImage
+                src="/images/tiktiktimer.png"
+                alt="TikTikTimer - Professional Timer App Logo"
+                width={256}
+                height={256}
+                className="rounded-full opacity-80"
+              />
+            </div>
             {/* Workout Timer */}
             <Link href="/workout" className="group">
-              <div className="card-sport hover:shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-2 relative overflow-hidden">
+              <div className="card-sport hover:shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-2 relative overflow-hidden z-20">
                 <div className="flex items-center justify-center w-24 h-24 rounded-2xl mb-6 shadow-lg group-hover:shadow-xl overflow-hidden">
-                  <OptimizedImage
-                    src="/images/workout5.png"
-                    alt="Workout Timer - Interval Training"
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                  />
+                  <OptimizedImage src="/images/workout5.png" alt="Workout Timer - Interval Training" width={96} height={96} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-3xl font-bold text-sport-800 mb-3">
                   Workout Timer
@@ -213,15 +199,9 @@ export default function HomePage() {
 
             {/* Meditation Timer */}
             <Link href="/meditation" className="group">
-              <div className="card-calm hover:shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-2 relative overflow-hidden">
+              <div className="card-calm hover:shadow-2xl transition-all duration-300 group-hover:scale-105 group-hover:-translate-y-2 relative overflow-hidden z-20">
                 <div className="flex items-center justify-center w-24 h-24 rounded-2xl mb-6 shadow-lg group-hover:shadow-xl overflow-hidden">
-                  <OptimizedImage
-                    src="/images/meditation4.png"
-                    alt="Meditation Timer - Mindfulness Practice"
-                    width={96}
-                    height={96}
-                    className="w-full h-full object-cover"
-                  />
+                  <OptimizedImage src="/images/meditation4.png" alt="Meditation Timer - Mindfulness Practice" width={96} height={96} className="w-full h-full object-cover" />
                 </div>
                 <h3 className="text-3xl font-bold text-calm-800 mb-3">
                   Meditation Timer
@@ -239,24 +219,16 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Bottom Banner Ad */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        {showMockAds ? (
-          <MockAd variant="banner" className="mb-8" />
-        ) : (
-          <BannerAd className="mb-8" />
-        )}
+      {/* Fixed Bottom Banner Ad */}
+      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 lg:px-8 py-4 bg-white/95 backdrop-blur-sm border-t border-gray-200 z-30">
+        {showMockAds ? <MockAd variant="banner" /> : <BannerAd />}
       </div>
 
       {/* Footer */}
-      <footer className="mt-16 py-8 border-t border-white/20">
+      <footer className="mt-8 py-6 border-t border-white/20 mb-24">
         <div className="text-center">
-          <p className="text-gray-600 mb-2">
-            © 2025 TikTikTimer. All rights reserved.
-          </p>
-          <p className="text-sm text-gray-500">
-            Professional workout and meditation timer for everyone.
-          </p>
+          <p className="text-gray-600 mb-2">© 2025 TikTikTimer. All rights reserved.</p>
+          <p className="text-sm text-gray-500">Professional workout and meditation timer for everyone.</p>
         </div>
       </footer>
     </main>

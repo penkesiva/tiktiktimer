@@ -7,7 +7,7 @@ import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { getAudioManager, playWorkoutCue, playChime, playMotivationalCue } from '@/lib/audio'
-import { WorkoutTopAd, WorkoutBottomAd } from '@/components/ads/GoogleAdsense'
+
 import { OptimizedImage } from '@/components/ui/Image'
 import Head from 'next/head'
 
@@ -314,32 +314,36 @@ export default function WorkoutTimerPage() {
       // Start countdown
       setCountdown(3)
       
-      // Countdown sequence: 3, 2, 1, Go!
+      // Countdown sequence: 3, 2, 1, GO!
       const countdownInterval = setInterval(async () => {
         setCountdown((prev) => {
-          if (prev === null || prev <= 1) {
+          if (prev === null) return null
+          
+          if (prev === 1) {
+            // Show GO! for 1 second
+            setTimeout(() => {
+              setCountdown(null)
+              
+              // Start the actual workout
+              setCurrentRound(1)
+              setPhase('work')
+              setTime(settings.workDuration)
+              setIsRunning(true)
+              setIsPaused(false)
+              
+              // Play start cue after countdown
+              playStartCue()
+            }, 1000) // 1 second delay to show GO! animation
+            
+            return 0 // Show GO! for 1 second
+          }
+          
+          if (prev <= 0) {
             clearInterval(countdownInterval)
-            setCountdown(null)
-            
-            // Start the actual workout
-            setCurrentRound(1)
-            setPhase('work')
-            setTime(settings.workDuration)
-            setIsRunning(true)
-            setIsPaused(false)
-            
-            // Play start cue after countdown
-            playStartCue()
             return null
           }
           
-          // Play countdown sound for each number
-          if (prev > 1) {
-            const audioManager = getAudioManager()
-            audioManager.playChime('round-chime').catch(() => {
-              // Silent error handling for countdown sounds
-            })
-          }
+
           
           return prev - 1
         })
@@ -541,10 +545,7 @@ export default function WorkoutTimerPage() {
       </header>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 pb-8 sm:pb-12 relative z-10">
-        {/* Top Ad */}
-        <div className="mb-4 sm:mb-6">
-          <WorkoutTopAd />
-        </div>
+
 
         {/* Workout Presets */}
         <div className="card-sport mb-6 relative overflow-hidden">
@@ -694,6 +695,7 @@ export default function WorkoutTimerPage() {
           )}
 
 
+
           {/* Current Timer Info */}
           <div className="text-center mb-4">
             <div className="text-xs md:text-sm font-medium text-sport-600 bg-sport-100 px-3 md:px-4 py-2 rounded-lg inline-block max-w-full">
@@ -735,7 +737,7 @@ export default function WorkoutTimerPage() {
                 className="min-w-[140px] md:min-w-[160px]"
               >
                 <Play className="w-5 h-5 mr-2" />
-                {countdown ? `Get Ready! ${countdown}` : (isAudioPlaying ? 'Starting...' : 'Start Workout')}
+                {countdown ? `Starting in ${countdown}...` : (isAudioPlaying ? 'Starting...' : 'Start Workout')}
               </Button>
             ) : (
               <div className="flex items-center space-x-3 md:space-x-4">
@@ -772,30 +774,10 @@ export default function WorkoutTimerPage() {
           </div>
         </div>
 
-        {/* Bottom Ad */}
-        <div className="mt-8">
-          <WorkoutBottomAd />
-        </div>
+
       </div>
 
-              {/* Full-Screen Countdown Overlay */}
-      {countdown && (
-        <div className="fixed inset-0 bg-gradient-to-br from-sport-500/95 to-sport-600/95 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="text-center text-white">
-            <div className={`text-8xl md:text-9xl font-bold mb-6 transition-all duration-300 ${
-              countdown === 1 ? 'animate-bounce scale-110' : 'animate-pulse'
-            }`}>
-              {countdown === 1 ? 'GO!' : countdown}
-            </div>
-            <div className="text-2xl md:text-3xl font-medium opacity-90">
-              {countdown === 1 ? 'Let\'s get started!' : 'Get ready...'}
-            </div>
-            <div className="text-lg opacity-75 mt-4">
-              {countdown === 1 ? 'Workout begins now!' : `${countdown} seconds to start`}
-            </div>
-          </div>
-        </div>
-      )}
+        
 
       {/* Restart Session Confirmation Modal */}
       {showRestartConfirm && (
@@ -1027,6 +1009,27 @@ export default function WorkoutTimerPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Floating Countdown Overlay */}
+      {countdown !== null && (
+        <>
+          {/* Subtle backdrop */}
+          <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30" />
+          {/* Countdown card */}
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-40">
+            <div className="text-center p-8 bg-gradient-to-r from-sport-100 to-sport-200 rounded-3xl border-4 border-sport-300 shadow-2xl backdrop-blur-sm">
+              <div className={`text-7xl md:text-8xl font-bold text-sport-700 mb-4 transition-all duration-300 ${
+                countdown === 0 ? 'animate-bounce scale-110' : 'animate-pulse'
+              }`}>
+                {countdown === 0 ? 'GO!' : countdown}
+              </div>
+              <div className="text-xl md:text-2xl font-medium text-sport-600">
+                {countdown === 0 ? 'Let\'s get started!' : 'Get ready...'}
+              </div>
+            </div>
+          </div>
+        </>
       )}
       </div>
     </>

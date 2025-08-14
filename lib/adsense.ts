@@ -3,80 +3,33 @@ export const ADSENSE_CONFIG = {
   // Your Google AdSense publisher ID
   PUBLISHER_ID: 'ca-pub-4519820641253525',
   
-  // Ad slot IDs - replace with your actual ad slot IDs
+  // Ad slot IDs - only homepage banner for policy compliance
   AD_SLOTS: {
-    BANNER: '7848437873', // Homepage bottom banner
-    SIDEBAR: 'YOUR_SIDEBAR_AD_SLOT',
-    INCONTENT: 'YOUR_INCONTENT_AD_SLOT',
-    FOOTER: 'YOUR_FOOTER_AD_SLOT',
-    WORKOUT_TOP: 'YOUR_WORKOUT_TOP_AD_SLOT',
-    WORKOUT_BOTTOM: 'YOUR_WORKOUT_BOTTOM_AD_SLOT',
-    MEDITATION_TOP: 'YOUR_MEDITATION_TOP_AD_SLOT',
-    MEDITATION_BOTTOM: 'YOUR_MEDITATION_BOTTOM_AD_SLOT',
+    BANNER: '7848437873', // Homepage bottom banner only
+    // Timer page ads removed - functional tools shouldn't have ads per Google policy
   },
   
-  // Ad formats
-  AD_FORMATS: {
-    BANNER: 'banner',
-    RECTANGLE: 'rectangle',
-    LEADERBOARD: 'leaderboard',
-    SKYSCRAPER: 'skyscraper',
-    AUTO: 'auto',
+  // Ad placement strategy - policy compliant
+  PLACEMENT: {
+    HOMEPAGE: {
+      BANNER: 'bottom', // Single banner above footer
+    },
+    // No ads on timer pages - they are functional tools
   },
   
-  // Ad dimensions
-  AD_DIMENSIONS: {
-    BANNER: { width: 728, height: 90 },
-    RECTANGLE: { width: 300, height: 250 },
-    LEADERBOARD: { width: 728, height: 90 },
-    SKYSCRAPER: { width: 160, height: 600 },
+  // Ad loading conditions
+  LOAD_CONDITIONS: {
+    // Only show ads on content-rich pages
+    MIN_CONTENT_LENGTH: 500, // Minimum content before showing ads
+    MAX_ADS_PER_PAGE: 1, // Maximum 1 ad per page for policy compliance
   },
   
-  // Ad placement settings
-  PLACEMENTS: {
-    // Home page ads
-    HOME_TOP: {
-      enabled: true,
-      slot: 'BANNER',
-      className: 'mb-8',
-    },
-    HOME_BOTTOM: {
-      enabled: true,
-      slot: 'BANNER',
-      className: 'mt-8',
-    },
-    
-    // Workout timer ads
-    WORKOUT_TOP: {
-      enabled: true,
-      slot: 'WORKOUT_TOP',
-      className: 'mb-6',
-    },
-    WORKOUT_BOTTOM: {
-      enabled: true,
-      slot: 'WORKOUT_BOTTOM',
-      className: 'mt-6',
-    },
-    
-    // Meditation timer ads
-    MEDITATION_TOP: {
-      enabled: true,
-      slot: 'MEDITATION_TOP',
-      className: 'mb-6',
-    },
-    MEDITATION_BOTTOM: {
-      enabled: true,
-      slot: 'MEDITATION_BOTTOM',
-      className: 'mt-6',
-    },
-    
-    // Sidebar ads (for larger screens)
-    SIDEBAR: {
-      enabled: true,
-      slot: 'SIDEBAR',
-      className: 'hidden lg:block',
-    },
-  },
+  // AdSense program policies compliance
+  POLICY_COMPLIANCE: {
+    NO_ADS_ON_FUNCTIONAL_PAGES: true, // Timer pages are functional tools
+    RESPECT_AD_TO_CONTENT_RATIO: true, // Maintain proper content-to-ad ratio
+    NO_NAVIGATION_INTERFERENCE: true, // Ads don't block essential functionality
+  }
 }
 
 // Helper function to check if ads should be shown
@@ -102,7 +55,4 @@ export function getAdSlot(slotName: keyof typeof ADSENSE_CONFIG.AD_SLOTS): strin
   return ADSENSE_CONFIG.AD_SLOTS[slotName]
 }
 
-// Helper function to get ad format
-export function getAdFormat(formatName: keyof typeof ADSENSE_CONFIG.AD_FORMATS): string {
-  return ADSENSE_CONFIG.AD_FORMATS[formatName]
-}
+
