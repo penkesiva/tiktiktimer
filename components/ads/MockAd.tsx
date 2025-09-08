@@ -1,12 +1,26 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { getAdSenseStatus, debugAdSenseConfig } from '@/lib/adsense'
+
 interface MockAdProps {
   className?: string
   variant?: 'banner' | 'rectangle' | 'sidebar'
   showLabel?: boolean
+  showDebugInfo?: boolean
 }
 
-export function MockAd({ className = '', variant = 'banner', showLabel = true }: MockAdProps) {
+export function MockAd({ className = '', variant = 'banner', showLabel = true, showDebugInfo = false }: MockAdProps) {
+  const [adSenseStatus, setAdSenseStatus] = useState<{ isLoaded: boolean; hasError: boolean; publisherId: string } | null>(null)
+
+  useEffect(() => {
+    if (showDebugInfo) {
+      // Call debug function to log environment info
+      debugAdSenseConfig()
+      setAdSenseStatus(getAdSenseStatus())
+    }
+  }, [showDebugInfo])
+
   const getAdStyles = () => {
     switch (variant) {
       case 'banner':
@@ -43,6 +57,16 @@ export function MockAd({ className = '', variant = 'banner', showLabel = true }:
           <div className="text-xs text-gray-500">
             Mock Ad - Development Preview
           </div>
+          {showDebugInfo && adSenseStatus && (
+            <div className="text-xs text-gray-400 mt-2 space-y-1">
+              <div>Publisher: {adSenseStatus.publisherId}</div>
+              <div>AdSense Loaded: {adSenseStatus.isLoaded ? '✅' : '❌'}</div>
+              <div>Has Error: {adSenseStatus.hasError ? '❌' : '✅'}</div>
+              <div className="text-xs text-gray-300 mt-1">
+                Check console for debug info
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

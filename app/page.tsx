@@ -221,7 +221,7 @@ export default function HomePage() {
 
       {/* Fixed Bottom Banner Ad */}
       <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 lg:px-8 py-4 bg-white/95 backdrop-blur-sm border-t border-gray-200 z-30">
-        {showMockAds ? <MockAd variant="banner" /> : <BannerAd />}
+        {showMockAds ? <MockAd variant="banner" showDebugInfo={true} /> : <BannerAd forceInDevelopment={true} />}
       </div>
 
       {/* Footer */}

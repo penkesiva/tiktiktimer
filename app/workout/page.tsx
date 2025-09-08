@@ -395,6 +395,9 @@ export default function WorkoutTimerPage() {
     musicStateRef.current.isPlaying = false
     musicStateRef.current.lastChange = 0
     
+    // Reinitialize audio system after restart
+    audioManager.reinitializeAudio()
+    
     // Keep restarting flag active longer to prevent music from starting
     setTimeout(() => {
       isRestartingRef.current = false
@@ -444,6 +447,10 @@ export default function WorkoutTimerPage() {
     setTime(preset.work)
     setCurrentRound(1)
     setPhase('work')
+    
+    // Reinitialize audio system for new preset
+    const audioManager = getAudioManager()
+    audioManager.reinitializeAudio()
   }, [isRunning, isPaused])
 
 
@@ -996,6 +1003,9 @@ export default function WorkoutTimerPage() {
                     setPhase('work')
                     setIsRunning(false)
                     setIsPaused(false)
+                    
+                    // Reinitialize audio system for new preset
+                    audioManager.reinitializeAudio()
                     
                     // Clear the confirmation state
                     setShowSettingsChangeConfirm(false)

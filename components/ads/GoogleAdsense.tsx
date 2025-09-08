@@ -1,50 +1,91 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { ADSENSE_CONFIG, shouldShowAds } from '@/lib/adsense'
+import { useEffect, useState, useRef } from 'react'
+import { ADSENSE_CONFIG, shouldShowAds, forceRealAdsInDevelopment } from '@/lib/adsense'
 
 interface GoogleAdsenseProps {
   adSlot: string
   adFormat?: 'auto' | 'fluid' | 'rectangle' | 'banner' | 'leaderboard' | 'skyscraper'
   className?: string
   style?: React.CSSProperties
+  forceInDevelopment?: boolean
 }
 
-export function GoogleAdsense({ adSlot, adFormat = 'auto', className = '', style = {} }: GoogleAdsenseProps) {
+export function GoogleAdsense({ adSlot, adFormat = 'auto', className = '', style = {}, forceInDevelopment = false }: GoogleAdsenseProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const [isScriptLoading, setIsScriptLoading] = useState(false)
+  const scriptLoadedRef = useRef(false)
 
   useEffect(() => {
-    if (!shouldShowAds()) {
+    // Use development override if requested
+    const shouldShow = forceInDevelopment ? forceRealAdsInDevelopment() : shouldShowAds()
+    
+    if (!shouldShow) {
       return
     }
 
-    // Load Google AdSense script if not already loaded
-    if (typeof window !== 'undefined' && !window.adsbygoogle) {
+    // Check if script is already loaded
+    if (typeof window !== 'undefined' && window.adsbygoogle && Array.isArray(window.adsbygoogle)) {
+      setIsLoaded(true)
+      return
+    }
+
+    // Prevent multiple script loads
+    if (isScriptLoading || scriptLoadedRef.current) {
+      return
+    }
+
+    // Load Google AdSense script
+    const loadAdSenseScript = () => {
+      setIsScriptLoading(true)
+      scriptLoadedRef.current = true
+
       const script = document.createElement('script')
       script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CONFIG.PUBLISHER_ID}`
       script.async = true
       script.crossOrigin = 'anonymous'
-      script.onload = () => setIsLoaded(true)
-      script.onerror = () => setHasError(true)
+      
+      script.onload = () => {
+        console.log('AdSense script loaded successfully')
+        setIsLoaded(true)
+        setIsScriptLoading(false)
+      }
+      
+      script.onerror = (error) => {
+        console.error('AdSense script failed to load:', error)
+        setHasError(true)
+        setIsScriptLoading(false)
+        scriptLoadedRef.current = false
+      }
+      
       document.head.appendChild(script)
-    } else {
-      setIsLoaded(true)
     }
-  }, [])
+
+    // Add a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(loadAdSenseScript, 100)
+    
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [forceInDevelopment])
 
   useEffect(() => {
     if (isLoaded && !hasError && typeof window !== 'undefined' && window.adsbygoogle) {
       try {
+        // Push the ad configuration to AdSense
         (window.adsbygoogle = window.adsbygoogle || []).push({})
+        console.log('AdSense ad pushed successfully')
       } catch (error) {
-        console.error('Error loading Google AdSense:', error)
+        console.error('Error loading Google AdSense ad:', error)
         setHasError(true)
       }
     }
   }, [isLoaded, hasError, adSlot])
 
-  if (!shouldShowAds() || hasError) {
+  const shouldShow = forceInDevelopment ? forceRealAdsInDevelopment() : shouldShowAds()
+  
+  if (!shouldShow || hasError) {
     return null
   }
 
@@ -63,13 +104,14 @@ export function GoogleAdsense({ adSlot, adFormat = 'auto', className = '', style
 }
 
 // Banner Ad Component
-export function BannerAd({ className = '' }: { className?: string }) {
+export function BannerAd({ className = '', forceInDevelopment = false }: { className?: string; forceInDevelopment?: boolean }) {
   return (
     <div className={`w-full max-w-4xl mx-auto ${className}`}>
       <GoogleAdsense
         adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="banner"
         className="w-full h-[90px] md:h-[120px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg"
+        forceInDevelopment={forceInDevelopment}
       />
     </div>
   )

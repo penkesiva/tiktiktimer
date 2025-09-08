@@ -235,32 +235,44 @@ export default function MeditationTimerPage() {
 
   // Background music playback for all presets
   useEffect(() => {
+    // Debug logging to understand state
+    console.log('Meditation Background Music Debug:', {
+      isRunning,
+      isPaused,
+      musicType: settings.musicType,
+      isMuted,
+      time,
+      duration: settings.duration,
+      currentPreset: settings.currentPreset
+    })
+    
     if (isRunning && !isPaused && settings.musicType && !isMuted) {
-      // Play background music when meditation starts and ensure it loops
+      // Play background music when meditation starts
       const playBackgroundMusic = async () => {
         try {
+          console.log('Starting meditation background music:', settings.musicType)
           const audioManager = getAudioManager()
           await audioManager.playAmbientSound(settings.musicType!)
+          console.log('Meditation background music started successfully')
         } catch (error) {
-          // Silent error handling for production
-          console.error('Error playing background music:', error)
+          console.error('Error playing meditation background music:', error)
         }
       }
       
-      // Start background music when meditation begins (at full duration)
-      if (time === settings.duration * 60) {
-        playBackgroundMusic()
-      }
+      // Start background music immediately when meditation is running
+      playBackgroundMusic()
     } else if (isPaused && settings.musicType) {
       // Pause background music when meditation is paused
+      console.log('Pausing meditation background music')
       const audioManager = getAudioManager()
       audioManager.pauseAmbientSound()
     } else if (isMuted && settings.musicType) {
       // Stop background music when muted
+      console.log('Stopping meditation background music (muted)')
       const audioManager = getAudioManager()
       audioManager.stopAmbientSound()
     }
-  }, [isRunning, isPaused, settings.musicType, time, settings.duration, isMuted])
+  }, [isRunning, isPaused, settings.musicType, isMuted])
 
   // Stop background music when timer is reset or meditation is completely stopped
   useEffect(() => {
@@ -341,6 +353,10 @@ export default function MeditationTimerPage() {
     setShowRestartConfirm(false)
     setWasMusicPlaying(false)
     setCountdown(null)
+    
+    // Reinitialize audio system after restart
+    const audioManager = getAudioManager()
+    audioManager.reinitializeAudio()
   }, [settings.duration])
 
   const confirmRestart = useCallback(() => {
@@ -400,6 +416,23 @@ export default function MeditationTimerPage() {
       // Stop any current ambient sound and reset
       const audioManager = getAudioManager()
       audioManager.stopAmbientSound()
+      // Reinitialize audio system when changing sound type
+      audioManager.reinitializeAudio()
+      restartSession()
+    }
+  }
+
+  const selectMusicType = (musicType: MeditationSettings['musicType']) => {
+    if (isRunning) {
+      setPendingSettingsChange({ type: 'musicType', value: musicType })
+      setShowSettingsChangeConfirm(true)
+    } else {
+      setSettings(prev => ({ ...prev, musicType }))
+      // Stop any current ambient sound and reset
+      const audioManager = getAudioManager()
+      audioManager.stopAmbientSound()
+      // Reinitialize audio system when changing music type
+      audioManager.reinitializeAudio()
       restartSession()
     }
   }
@@ -426,6 +459,14 @@ export default function MeditationTimerPage() {
         setCurrentPrompt(null)
       } else if (type === 'soundType') {
         setSettings(prev => ({ ...prev, soundType: value }))
+        
+        // Reinitialize audio system when changing sound type
+        audioManager.reinitializeAudio()
+      } else if (type === 'musicType') {
+        setSettings(prev => ({ ...prev, musicType: value }))
+        
+        // Reinitialize audio system when changing music type
+        audioManager.reinitializeAudio()
       } else if (type === 'preset') {
         setSettings({
           duration: value.duration,
@@ -436,6 +477,9 @@ export default function MeditationTimerPage() {
         })
         setTime(value.duration * 60)
         setCurrentPrompt(null)
+        
+        // Reinitialize audio system for new preset
+        audioManager.reinitializeAudio()
       }
       
       setPendingSettingsChange(null)
@@ -453,6 +497,10 @@ export default function MeditationTimerPage() {
       setPendingSettingsChange({ type: 'preset', value: preset })
       setShowSettingsChangeConfirm(true)
     } else {
+      // Stop any current ambient sound first
+      const audioManager = getAudioManager()
+      audioManager.stopAmbientSound()
+      
       setSettings({
         duration: preset.duration,
         mode: preset.mode,
@@ -462,9 +510,9 @@ export default function MeditationTimerPage() {
       })
       setTime(preset.duration * 60)
       setCurrentPrompt(null)
-      // Stop any current ambient sound
-      const audioManager = getAudioManager()
-      audioManager.stopAmbientSound()
+      
+      // Reinitialize audio system for new preset
+      audioManager.reinitializeAudio()
     }
   }, [isRunning])
 

@@ -13,6 +13,7 @@ interface AudioManager {
   pauseAmbientSound: () => void
   resumeAmbientSound: () => void
   stopAmbientSound: () => void
+  reinitializeAudio: () => void
   playWorkoutMusic: () => Promise<void>
   pauseWorkoutMusic: () => void
   resumeWorkoutMusic: () => void
@@ -301,12 +302,27 @@ class AudioManagerImpl implements AudioManager {
 
     const audio = this.audioElements.get(`ambient-${soundType}`)
     if (audio) {
+      // Reset audio state to prevent interruption errors
+      audio.currentTime = 0
       audio.volume = this.volume * 0.5 // Ambient sounds at half volume
+      
       try {
+        // Add a small delay to ensure clean state
+        await new Promise(resolve => setTimeout(resolve, 50))
         await audio.play()
       } catch (error) {
-        console.error(`Error playing ambient sound ${soundType}:`, error)
-        console.warn(`Make sure the file /audio/meditation/ambient/${soundType}.mp3 exists`)
+        if (error instanceof Error && error.name === 'AbortError') {
+          // Handle interruption gracefully - try to play again
+          console.log('Audio was interrupted, retrying...')
+          try {
+            await audio.play()
+          } catch (retryError) {
+            console.error(`Error retrying ambient sound ${soundType}:`, retryError)
+          }
+        } else {
+          console.error(`Error playing ambient sound ${soundType}:`, error)
+          console.warn(`Make sure the file /audio/meditation/ambient/${soundType}.mp3 exists`)
+        }
       }
     } else {
       console.warn(`Ambient sound file for ${soundType} not found. Please add /audio/meditation/ambient/${soundType}.mp3`)
@@ -318,7 +334,11 @@ class AudioManagerImpl implements AudioManager {
     ambientSounds.forEach(sound => {
       const audio = this.audioElements.get(`ambient-${sound}`)
       if (audio && !audio.paused) {
-        audio.pause()
+        try {
+          audio.pause()
+        } catch (error) {
+          console.log('Error pausing ambient sound, continuing...')
+        }
       }
     })
   }
@@ -328,9 +348,23 @@ class AudioManagerImpl implements AudioManager {
     ambientSounds.forEach(sound => {
       const audio = this.audioElements.get(`ambient-${sound}`)
       if (audio && audio.paused) {
-        audio.play().catch(error => {
-          console.error(`Error resuming ambient sound ${sound}:`, error)
-        })
+        // Add a small delay to prevent interruption errors
+        setTimeout(async () => {
+          try {
+            await audio.play()
+          } catch (error) {
+            if (error instanceof Error && error.name === 'AbortError') {
+              console.log('Resume was interrupted, retrying...')
+              try {
+                await audio.play()
+              } catch (retryError) {
+                console.error(`Error retrying resume for ${sound}:`, retryError)
+              }
+            } else {
+              console.error(`Error resuming ambient sound ${sound}:`, error)
+            }
+          }
+        }, 100)
       }
     })
   }
@@ -340,10 +374,44 @@ class AudioManagerImpl implements AudioManager {
     ambientSounds.forEach(sound => {
       const audio = this.audioElements.get(`ambient-${sound}`)
       if (audio) {
-        audio.pause()
-        audio.currentTime = 0
+        try {
+          audio.pause()
+          audio.currentTime = 0
+        } catch (error) {
+          console.log('Error stopping ambient sound, continuing...')
+        }
       }
     })
+  }
+
+  // Reinitialize audio elements to fix playback issues
+  reinitializeAudio(): void {
+    console.log('Reinitializing audio elements...')
+    
+    // Stop all current audio
+    this.stopAmbientSound()
+    
+    // Clear and recreate ambient sound elements
+    const ambientSounds = ['rain', 'ocean', 'spa', 'nature', 'zen', 'calm']
+    ambientSounds.forEach(sound => {
+      const oldAudio = this.audioElements.get(`ambient-${sound}`)
+      if (oldAudio) {
+        try {
+          oldAudio.pause()
+          oldAudio.currentTime = 0
+        } catch (error) {
+          console.log('Error cleaning up old audio element')
+        }
+      }
+      
+      // Create new audio element
+      const newAudio = new Audio(`/audio/meditation/ambient/${sound}.mp3`)
+      newAudio.preload = 'auto'
+      newAudio.loop = true
+      this.audioElements.set(`ambient-${sound}`, newAudio)
+    })
+    
+    console.log('Audio elements reinitialized')
   }
 
   async playWorkoutMusic(): Promise<void> {
