@@ -42,7 +42,9 @@ export default function FeedbackPage() {
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back</span>
             </Link>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">TikTikTimer - Feedback</h1>
+            <h1 className="text-2xl font-bold">
+              <span className="text-blue-600">TikTik</span><span className="text-green-600">Timer</span> - Feedback
+            </h1>
             <OptimizedImage
               src="/images/logo.png"
               alt="TikTikTimer Logo"

@@ -127,7 +127,9 @@ export default function HomePage() {
                 className="object-contain"
                 priority
               />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">TikTikTimer</h1>
+              <h1 className="text-2xl font-bold">
+                <span className="text-blue-600">TikTik</span><span className="text-green-600">Timer</span>
+              </h1>
             </div>
             <nav className="hidden md:flex space-x-8">
               <Link href="/feedback" className="text-gray-600 hover:text-sport-600 transition-colors font-medium">
@@ -152,8 +154,8 @@ export default function HomePage() {
         <div className="max-w-4xl w-full mx-auto">
           {/* Hero Section */}
           <div className="text-center mb-12 sm:mb-16 animate-fade-in relative">
-            <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent mb-4 sm:mb-6 leading-tight">
-              Focus on Your Practice
+            <h2 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 leading-tight">
+              <span className="text-blue-600">Focus</span> <span className="text-green-600">on Your Practice</span>
             </h2>
             <p className="text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-2">
               Clean, distraction-free timers for workouts and meditation with professional audio guidance.
@@ -224,7 +226,7 @@ export default function HomePage() {
       </div>
 
       {/* Fixed Bottom Banner Ad */}
-      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 lg:px-8 py-4 bg-white/95 backdrop-blur-sm border-t border-gray-200 z-30">
+      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-6 lg:px-8 py-4 z-30">
         {showMockAds ? (
           <MockAd variant="banner" showDebugInfo={true} />
         ) : (

@@ -110,7 +110,7 @@ export function BannerAd({ className = '', forceInDevelopment = false }: { class
       <GoogleAdsense
         adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="banner"
-        className="w-full h-[90px] md:h-[120px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg"
+        className="w-full h-[90px] md:h-[120px] rounded-xl flex items-center justify-center"
         forceInDevelopment={forceInDevelopment}
       />
     </div>
@@ -124,7 +124,7 @@ export function SidebarAd({ className = '' }: { className?: string }) {
       <GoogleAdsense
         adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="rectangle"
-        className="w-full h-[600px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg"
+        className="w-full h-[600px] rounded-xl flex items-center justify-center"
       />
     </div>
   )
@@ -137,7 +137,7 @@ export function InContentAd({ className = '' }: { className?: string }) {
       <GoogleAdsense
         adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="rectangle"
-        className="w-full h-[250px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg"
+        className="w-full h-[250px] rounded-xl flex items-center justify-center"
       />
     </div>
   )
@@ -150,7 +150,7 @@ export function FooterAd({ className = '' }: { className?: string }) {
       <GoogleAdsense
         adSlot={ADSENSE_CONFIG.AD_SLOTS.BANNER}
         adFormat="banner"
-        className="w-full h-[90px] bg-gradient-to-r from-gray-100 to-gray-200 rounded-xl flex items-center justify-center shadow-lg"
+        className="w-full h-[90px] rounded-xl flex items-center justify-center"
       />
     </div>
   )

@@ -555,7 +555,9 @@ export default function WorkoutTimerPage() {
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back</span>
             </Link>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent absolute left-1/2 transform -translate-x-1/2">Let's Do It</h1>
+            <h1 className="text-2xl font-bold absolute left-1/2 transform -translate-x-1/2">
+              <span className="text-blue-600">Let's</span> <span className="text-green-600">Do It</span>
+            </h1>
             <div className="w-20"></div>
           </div>
         </div>

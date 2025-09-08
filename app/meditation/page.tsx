@@ -643,7 +643,9 @@ export default function MeditationTimerPage() {
               <ArrowLeft className="w-5 h-5" />
               <span className="font-medium">Back</span>
             </Link>
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">Find Your Peace</h1>
+            <h1 className="text-2xl font-bold">
+              <span className="text-blue-600">Find</span> <span className="text-green-600">Your Peace</span>
+            </h1>
 
             <div className="flex items-center space-x-2">
               {/* Volume controls moved to timer card */}
