@@ -6,6 +6,7 @@ import { Play } from 'lucide-react'
 import { BannerAd } from '@/components/ads/GoogleAdsense'
 import { MockAd } from '@/components/ads/MockAd'
 import { OptimizedImage } from '@/components/ui/Image'
+import { trackAdInteraction } from '@/lib/analytics'
 import Head from 'next/head'
 
 export default function HomePage() {
@@ -133,7 +134,10 @@ export default function HomePage() {
                 Feedback
               </Link>
               <button
-                onClick={() => setShowMockAds(!showMockAds)}
+                onClick={() => {
+                  setShowMockAds(!showMockAds)
+                  trackAdInteraction(showMockAds ? 'mock' : 'banner', showMockAds ? 'hide' : 'show')
+                }}
                 className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors"
               >
                 {showMockAds ? 'Show Real Ads' : 'Show Mock Ads'}

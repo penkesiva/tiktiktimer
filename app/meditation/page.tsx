@@ -6,6 +6,7 @@ import { ArrowLeft, Play, Pause, RotateCcw, Settings, Music, Mic, MicOff, User, 
 import { Button } from '@/components/ui/Button'
 import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { getAudioManager, playMeditationCue } from '@/lib/audio'
+import { trackTimerStart, trackTimerComplete, trackTimerPause, trackPresetSelect, trackAudioToggle } from '@/lib/analytics'
 
 import { OptimizedImage } from '@/components/ui/Image'
 import Head from 'next/head'
@@ -129,6 +130,7 @@ export default function MeditationTimerPage() {
         setTime((prevTime) => {
           if (prevTime <= 1) {
             // Meditation complete
+            trackTimerComplete('meditation', settings.duration)
             setIsRunning(false)
             playEndChime()
             return 0
@@ -285,6 +287,9 @@ export default function MeditationTimerPage() {
 
   const startTimer = useCallback(async () => {
     if (!isRunning && !countdown) {
+      // Track meditation start
+      trackTimerStart('meditation', settings.duration)
+      
       // Start countdown
       setCountdown(3)
       
@@ -326,6 +331,7 @@ export default function MeditationTimerPage() {
 
   const pauseTimer = useCallback(() => {
     setIsPaused(true)
+    trackTimerPause('meditation')
     // Pause background music if playing (don't stop it completely)
     if (settings.musicType && !isMuted) {
       setWasMusicPlaying(true)

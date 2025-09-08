@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { GoogleAnalytics } from '@/components/analytics/GoogleAnalytics'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -83,7 +84,10 @@ export default function RootLayout({
         <meta name="msapplication-tap-highlight" content="no" />
         <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_GOOGLE_ADS_ID || 'ca-pub-4519820641253525'} />
       </head>
-      <body className={inter.className}>{children}</body>
+      <body className={inter.className}>
+        <GoogleAnalytics />
+        {children}
+      </body>
     </html>
   )
 } 

@@ -7,6 +7,7 @@ import { TimerDisplay } from '@/components/timer/TimerDisplay'
 import { Button } from '@/components/ui/Button'
 import { cn } from '@/lib/utils'
 import { getAudioManager, playWorkoutCue, playChime, playMotivationalCue } from '@/lib/audio'
+import { trackTimerStart, trackTimerComplete, trackTimerPause, trackPresetSelect, trackAudioToggle } from '@/lib/analytics'
 
 import { OptimizedImage } from '@/components/ui/Image'
 import Head from 'next/head'
@@ -219,6 +220,10 @@ export default function WorkoutTimerPage() {
                   setTime(0)
                   setIsRunning(false)
                   
+                  // Track workout completion
+                  const totalDuration = (settings.workDuration + settings.restDuration) * settings.rounds
+                  trackTimerComplete('workout', totalDuration)
+                  
                   // Stop workout music when workout completes
                   const audioManager = getAudioManager()
                   audioManager.stopWorkoutMusic()
@@ -311,6 +316,10 @@ export default function WorkoutTimerPage() {
 
   const startTimer = useCallback(async () => {
     if (!isRunning && !countdown) {
+      // Track timer start
+      const totalDuration = (settings.workDuration + settings.restDuration) * settings.rounds
+      trackTimerStart('workout', totalDuration)
+      
       // Start countdown
       setCountdown(3)
       
@@ -353,6 +362,7 @@ export default function WorkoutTimerPage() {
 
   const pauseTimer = () => {
     setIsPaused(true)
+    trackTimerPause('workout')
     const audioManager = getAudioManager()
     audioManager.pauseWorkoutMusic()
   }
