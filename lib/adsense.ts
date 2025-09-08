@@ -37,7 +37,9 @@ export function debugAdSenseConfig() {
   console.log('AdSense Debug Info:', {
     envVar: process.env.NEXT_PUBLIC_GOOGLE_ADS_ID,
     publisherId: ADSENSE_CONFIG.PUBLISHER_ID,
-    nodeEnv: process.env.NODE_ENV
+    nodeEnv: process.env.NODE_ENV,
+    isProduction: process.env.NODE_ENV === 'production',
+    adSlot: ADSENSE_CONFIG.AD_SLOTS.BANNER
   })
 }
 
@@ -51,34 +53,8 @@ export function shouldShowAds(): boolean {
     return false
   }
   
-  // In development, allow ads for testing (but show mock ads by default)
-  if (process.env.NODE_ENV === 'development') {
-    // You can force real ads in development by setting this to true
-    return false // Set to true if you want to test real ads in development
-  }
-  
-  // More sophisticated ad blocker detection for production
-  const isAdBlocked = () => {
-    // Check if adsbygoogle is undefined (common ad blocker behavior)
-    if (window.adsbygoogle === undefined) {
-      return true
-    }
-    
-    // Check if the AdSense script failed to load
-    const adsenseScript = document.querySelector('script[src*="adsbygoogle.js"]')
-    if (!adsenseScript) {
-      return true
-    }
-    
-    return false
-  }
-  
-  // Hide ads if ad blocker is detected
-  if (isAdBlocked()) {
-    console.log('AdSense: Ad blocker detected, hiding ads')
-    return false
-  }
-  
+  // Always show ads in production, or when explicitly requested
+  // In development, we can still show ads for testing
   return true
 }
 
