@@ -47,6 +47,8 @@ export default function HomePage() {
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
         <meta name="googlebot" content="index, follow" />
         
+        <link rel="canonical" href="https://tiktiktimer.com" />
+        
         {/* Structured Data for Rich Snippets */}
         <script
           type="application/ld+json"
@@ -75,6 +77,19 @@ export default function HomePage() {
               ],
               "screenshot": "https://tiktiktimer.com/images/workout1.png",
               "softwareVersion": "1.0.0"
+            })
+          }}
+        />
+        {/* Organization JSON-LD */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "TikTikTimer",
+              "url": "https://tiktiktimer.com",
+              "logo": "https://tiktiktimer.com/images/logo.png"
             })
           }}
         />

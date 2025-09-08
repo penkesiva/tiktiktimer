@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowLeft, Send, Play } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { OptimizedImage } from '@/components/ui/Image'
+import Head from 'next/head'
 
 export default function FeedbackPage() {
   const [formData, setFormData] = useState({
@@ -33,7 +34,17 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100">
+    <>
+      <Head>
+        <title>TikTikTimer Feedback | Suggestions and Support</title>
+        <meta name="description" content="Share feedback, report issues, or suggest features for TikTikTimer. Help us improve the workout and meditation timer experience." />
+        <link rel="canonical" href="https://tiktiktimer.com/feedback" />
+        <meta property="og:title" content="TikTikTimer Feedback" />
+        <meta property="og:description" content="Share your thoughts and help us improve TikTikTimer." />
+        <meta property="og:url" content="https://tiktiktimer.com/feedback" />
+        <meta property="og:type" content="website" />
+      </Head>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100">
       {/* Header */}
       <header className="bg-white/80 backdrop-blur-md border-b border-white/20 sticky top-0 z-50">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -158,5 +169,6 @@ export default function FeedbackPage() {
         </div>
       </div>
     </div>
+    </>
   )
 } 
